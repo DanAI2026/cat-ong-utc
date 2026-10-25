@@ -1,0 +1,17 @@
+{
+  "name": "Cắt Ống UTC",
+  "short_name": "Cắt Ống",
+  "description": "Tính chiều dài ống cần cắt theo số đo thực tế: tuyến ống, lệch tâm 2 co, tuyến nhiều đoạn, vật tư theo dự án.",
+  "lang": "vi",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#12171c",
+  "theme_color": "#1b2229",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

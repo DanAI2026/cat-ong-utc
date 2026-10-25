@@ -1,0 +1,1537 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Cắt Ống UTC</title>
+<meta name="description" content="Tính chiều dài ống cần cắt theo số đo thực tế cho thợ lắp đặt ống của Công ty TNHH Công Nghệ UTC.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cắt Ống">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1b2229" media="(prefers-color-scheme: dark)">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body><title>Cắt Ống UTC</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Be+Vietnam+Pro:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: một cột cho điện thoại; thẻ "Ống đang dùng" + dự án ở trên, rồi tab: tuyến thẳng → lệch tâm → vật tư dự án → bảng tra */
+:root{
+  --bg:#e9edf0; --surface:#ffffff; --sunk:#f3f5f7; --ink:#18212a; --muted:#596673; --line:#cfd7dd;
+  --accent:#d9561a; --accent-ink:#ffffff; --accent-soft:#fbe7dc;
+  --steel:#7d8c99; --steel-soft:#dfe5ea; --warn-bg:#fff4d6; --warn-ink:#7a5200; --bad-bg:#fde2df; --bad-ink:#9b2317;
+  /* màu vật thể trong hình 3D: giữ nguyên ở cả 2 giao diện */
+  --p-hi:#f2f5f7; --p-mid:#aeb9c2; --p-lo:#5f6c77;
+  --v-hi:#8fb2e6; --v-mid:#2f5d9a; --v-lo:#16304f;
+  --r-hi:#6b6b6b; --r-mid:#2b2b2b; --r-lo:#0d0d0d;
+  --o-hi:#ffc19a; --o-lo:#8a3410;
+  --stage:#eef2f5;
+  --f-display:"Barlow Condensed","Arial Narrow",sans-serif;
+  --f-body:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-num:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b2229; --sunk:#151b21; --ink:#e5eaee; --muted:#93a0ab; --line:#2d3842;
+  --accent:#ff7a3d; --accent-ink:#1a0d05; --accent-soft:#3a2416;
+  --steel:#6b7a87; --steel-soft:#26313a; --warn-bg:#3a2f12; --warn-ink:#f3cf73; --bad-bg:#3d1c19; --bad-ink:#ffaaa0;
+  --stage:#232c34; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b2229; --sunk:#151b21; --ink:#e5eaee; --muted:#93a0ab; --line:#2d3842;
+  --accent:#ff7a3d; --accent-ink:#1a0d05; --accent-soft:#3a2416;
+  --steel:#6b7a87; --steel-soft:#26313a; --warn-bg:#3a2f12; --warn-ink:#f3cf73; --bad-bg:#3d1c19; --bad-ink:#ffaaa0;
+  --stage:#232c34; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{max-width:640px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+header.top .wrap{padding-block:12px 0}
+.brand{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+h1{font-family:var(--f-display);font-weight:700;font-size:28px;margin:0;line-height:1;white-space:nowrap;flex:none}
+h1 span{color:var(--accent)}
+.pipe-tag{font:600 13px var(--f-num);color:var(--muted);text-align:right;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+nav.tabs{display:flex;gap:4px;overflow-x:auto;margin-top:10px;scrollbar-width:none}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs button{flex:0 0 auto;border:0;background:none;color:var(--muted);font:600 15px var(--f-body);padding:10px 12px 12px;border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+nav.tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+
+.stack{display:grid;gap:16px;padding-top:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;gap:12px;min-width:0}
+.card h2{margin:0;font:700 20px var(--f-display);letter-spacing:.02em}
+.card h3{margin:0;font:700 17px var(--f-display);letter-spacing:.02em}
+.lead{margin:0;color:var(--muted);font-size:15px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.full{grid-column:1/-1}
+label.f{display:grid;gap:4px;min-width:0;align-content:end}
+label.f > span{font-size:13px;font-weight:600;color:var(--muted)}
+label.f small{font-weight:400;font-size:12px}
+.inp{position:relative}
+.inp input,.inp select{width:100%;height:52px;border:1.5px solid var(--line);border-radius:8px;background:var(--sunk);color:var(--ink);font:600 20px var(--f-num);padding:0 44px 0 12px;font-variant-numeric:tabular-nums;appearance:none}
+.inp input.txt{font:600 17px var(--f-body);padding-right:12px}
+.inp select{font:600 16px var(--f-body);padding-right:30px}
+.inp.sel::after{content:"";position:absolute;right:14px;top:50%;width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:translateY(-70%) rotate(45deg);pointer-events:none}
+.inp input:focus,.inp select:focus{outline:none;border-color:var(--accent);background:var(--surface)}
+.inp i{position:absolute;right:12px;top:50%;transform:translateY(-50%);font:500 13px var(--f-num);color:var(--muted);font-style:normal;pointer-events:none}
+.inp.big input{height:62px;font-size:28px}
+details.more summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--muted)}
+details.more[open] summary{margin-bottom:10px}
+.projbar{display:flex;gap:8px;align-items:end}
+.projbar label.f{flex:1}
+
+/* chuỗi phụ kiện */
+ol.run{list-style:none;margin:0;padding:0;display:grid;gap:0}
+ol.run li{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:8px 10px;align-items:center;padding:8px 0;border-top:1px dashed var(--line)}
+ol.run li:first-child{border-top:0}
+@media (max-width:520px){ol.run li{grid-template-columns:28px minmax(0,1fr)}ol.run li .ctl{grid-column:2;justify-content:flex-end}ol.run li .ctl:empty{display:none}}
+ol.run .ic{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--steel-soft);color:var(--ink);font:700 12px var(--f-num)}
+ol.run li.anchor .ic{background:var(--ink);color:var(--surface)}
+ol.run li.pipe .ic{background:var(--accent);color:var(--accent-ink)}
+ol.run li.pipe .nm{color:var(--accent);font-weight:700}
+.nm{font-weight:600;font-size:15px;min-width:0}
+.nm small{display:block;font-weight:400;color:var(--muted);font-size:12.5px}
+.code{display:inline-block;font:700 11.5px var(--f-num);padding:1px 6px;border-radius:4px;background:var(--ink);color:var(--surface);margin-right:6px;vertical-align:1px}
+.ctl{display:flex;gap:4px;align-items:center}
+.ctl input{width:84px;height:44px;border:1.5px solid var(--line);border-radius:8px;background:var(--sunk);color:var(--ink);font:600 17px var(--f-num);text-align:right;padding:0 8px}
+.ctl input.custom{border-color:var(--accent)}
+.ctl input:focus{outline:none;border-color:var(--accent)}
+.ib{min-width:36px;height:44px;border:1.5px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font:600 15px var(--f-body);cursor:pointer;padding:0 8px}
+.ib:focus-visible{outline:2px solid var(--accent)}
+.ib.danger{color:var(--bad-ink);border-color:var(--bad-ink)}
+.anchor select{height:44px;border:1.5px solid var(--line);border-radius:8px;background:var(--sunk);color:var(--ink);font:600 14px var(--f-body);padding:0 8px;max-width:100%;width:100%}
+.addrow{display:flex;gap:8px}
+.addrow select{flex:1;min-width:0;height:48px;border:1.5px dashed var(--steel);border-radius:8px;background:var(--surface);color:var(--ink);font:600 15px var(--f-body);padding:0 10px}
+
+.result{background:var(--surface);border:2px solid var(--accent);border-radius:12px;padding:14px;display:grid;gap:12px}
+.result h2{margin:0;font:700 15px var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--accent)}
+.big{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:flex-end}
+.big div{display:grid}
+.big b{font:700 48px/1 var(--f-display);font-variant-numeric:tabular-nums}
+.big b small{font:500 15px var(--f-num);color:var(--muted);margin-left:4px}
+.big span{font-size:13px;color:var(--muted)}
+table.kv{width:100%;border-collapse:collapse;font-size:14.5px}
+table.kv td{padding:6px 0;border-top:1px solid var(--line);vertical-align:top}
+table.kv td:last-child{text-align:right;font:600 15px var(--f-num);white-space:nowrap;padding-left:10px;font-variant-numeric:tabular-nums}
+table.kv tr.sum td{font-weight:700;border-top:2px solid var(--ink)}
+.tbl{overflow-x:auto}
+table.ref{border-collapse:collapse;font-size:14px;width:100%}
+table.ref th,table.ref td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left}
+table.ref td:last-child{text-align:right;font:600 15px var(--f-num)}
+table.ref th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.note{font-size:13.5px;padding:9px 11px;border-radius:8px;background:var(--warn-bg);color:var(--warn-ink)}
+.note.bad{background:var(--bad-bg);color:var(--bad-ink)}
+.note.info{background:var(--sunk);color:var(--muted)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{height:48px;padding:0 18px;border-radius:8px;border:0;background:var(--accent);color:var(--accent-ink);font:600 16px var(--f-body);cursor:pointer;white-space:nowrap}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.btn:disabled{opacity:.5;cursor:default}
+.copied{font-size:13px;color:var(--muted)}
+textarea.fallback{width:100%;min-height:140px;font:13px var(--f-num);background:var(--sunk);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px}
+.fig svg{display:block;width:100%;height:auto;max-height:260px}
+svg text{font-family:var(--f-num);fill:var(--ink)}
+.foot{font-size:12.5px;color:var(--muted);text-align:center}
+.route{display:grid;gap:10px}
+.seg{display:flex;gap:6px}
+.seg button{flex:1 1 0;height:44px;border:1.5px solid var(--line);border-radius:8px;background:var(--sunk);color:var(--ink);font:600 15px var(--f-body);cursor:pointer}
+.seg button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.seg button:focus-visible{outline:2px solid var(--accent)}
+.v3{width:100%;height:min(70vh,420px);border-radius:10px;overflow:hidden;background:var(--stage);touch-action:none;position:relative}
+.v3 canvas{display:block;width:100%!important;height:100%!important;cursor:grab}
+.leg{border:1.5px solid var(--line);border-radius:10px;padding:12px;display:grid;gap:10px;background:var(--sunk)}
+.leg .inp input,.leg .inp select{background:var(--surface)}
+.leghead{display:flex;justify-content:space-between;align-items:center}
+.leghead b{font:700 18px var(--f-display);letter-spacing:.02em}
+.leghead .ib{height:34px;font-size:13px}
+.node{justify-self:center;font:600 13px var(--f-num);color:var(--muted);padding:4px 12px;border-radius:999px;border:1.5px dashed var(--steel)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend svg{display:inline-block;width:auto;flex:none}
+
+/* thư viện vật tư */
+.items{display:grid;gap:12px}
+.item{display:grid;grid-template-columns:112px minmax(0,1fr);gap:12px;padding-top:12px;border-top:1px solid var(--line)}
+.item:first-child{border-top:0;padding-top:0}
+.pic{width:112px;aspect-ratio:16/11;max-width:100%;border-radius:8px;background:var(--stage);display:grid;place-items:center;overflow:hidden}
+.pic img,.pic svg{width:100%;height:100%;object-fit:contain;display:block}
+.item .nm{font-size:16px}
+.meta{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;font-size:13px;color:var(--muted);margin-top:4px}
+.sym{width:46px;height:23px;color:var(--ink)}
+.lens{font:500 13px var(--f-num);color:var(--ink);margin-top:6px;line-height:1.6}
+.lens b{color:var(--muted);font-weight:500}
+.item .actions{margin-top:8px}
+.item .ib{height:38px}
+.dngrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.dngrid label{display:flex;align-items:center;gap:6px;background:var(--sunk);border:1.5px solid var(--line);border-radius:8px;padding:0 8px;height:44px}
+.dngrid label span{font:600 13px var(--f-num);color:var(--muted);width:46px;flex:none}
+.dngrid input{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font:600 17px var(--f-num);text-align:right;height:40px}
+.dngrid input:focus{outline:none}
+.dngrid label:focus-within{border-color:var(--accent)}
+.preview{display:grid;grid-template-columns:150px minmax(0,1fr);gap:12px;align-items:center}
+.preview .pic{width:150px}
+.empty{text-align:center;padding:18px 8px;color:var(--muted);font-size:15px;display:grid;gap:10px;justify-items:center}
+.status{font-size:13px;color:var(--muted)}
+@media (max-width:340px){.grid{grid-template-columns:1fr}.big b{font-size:40px}.ctl input{width:70px}.item{grid-template-columns:84px minmax(0,1fr)}.pic{width:84px}.preview{grid-template-columns:1fr}}
+</style>
+
+<header class="top"><div class="wrap">
+  <div class="brand"><h1>Cắt ống <span>UTC</span></h1><span class="pipe-tag" id="tag">—</span></div>
+  <nav class="tabs" role="tablist" aria-label="Chế độ tính">
+    <button role="tab" id="t-tuyen" aria-controls="tuyen" aria-selected="true">Đoạn ống nối</button>
+    <button role="tab" id="t-lech" aria-controls="lech" aria-selected="false">Lệch tâm 2 co</button>
+    <button role="tab" id="t-nhieu" aria-controls="nhieu" aria-selected="false">Tuyến nhiều đoạn</button>
+    <button role="tab" id="t-vattu" aria-controls="vattu" aria-selected="false">Vật tư dự án</button>
+    <button role="tab" id="t-tra" aria-controls="tra" aria-selected="false">Bảng tra</button>
+  </nav>
+</div></header>
+
+<main class="wrap stack">
+<div class="note info" id="install" hidden style="display:flex;gap:10px;align-items:center;justify-content:space-between"><span id="install-t">Cài "Cắt Ống UTC" lên màn hình chính để mở nhanh và dùng không cần mạng.</span><button class="btn" id="install-b" type="button" style="height:40px">Cài</button></div>
+
+<section class="card" aria-label="Ống đang dùng">
+  <h2>Ống đang dùng</h2>
+  <div class="projbar">
+    <label class="f"><span>Dự án <small>(hãng vật tư theo dự án)</small></span><div class="inp sel"><select id="proj"></select></div></label>
+  </div>
+  <div class="grid">
+    <label class="f"><span>Vật liệu</span><div class="inp sel"><select id="mat"></select></div></label>
+    <label class="f"><span>Kiểu nối / phụ kiện</span><div class="inp sel"><select id="fam"></select></div></label>
+    <label class="f"><span>Cỡ ống</span><div class="inp sel"><select id="dn"></select></div></label>
+    <label class="f"><span>Đường kính ngoài</span><div class="inp"><input id="od" inputmode="decimal"><i>mm</i></div></label>
+    <label class="f"><span>Độ dày thành ống</span><div class="inp"><input id="wall" inputmode="decimal"><i>mm</i></div></label>
+    <label class="f"><span>Khối lượng</span><div class="inp"><input id="kgm" readonly tabindex="-1"><i>kg/m</i></div></label>
+  </div>
+  <details class="more">
+    <summary>Thông số mối nối (gioăng, khe hàn…)</summary>
+    <div class="grid">
+      <label class="f"><span>Dày gioăng bích</span><div class="inp"><input id="pg" inputmode="decimal" value="3"><i>mm</i></div></label>
+      <label class="f"><span>Khe hàn đối đầu</span><div class="inp"><input id="pw" inputmode="decimal" value="2"><i>mm</i></div></label>
+      <label class="f"><span>Ống lùi trong bích trượt <small>(để hàn mặt trong)</small></span><div class="inp"><input id="ps" inputmode="decimal" placeholder="= dày ống"><i>mm</i></div></label>
+      <label class="f"><span>Khe đầu ống ở khớp rãnh</span><div class="inp"><input id="pc" inputmode="decimal" value="2"><i>mm</i></div></label>
+    </div>
+  </details>
+</section>
+
+<!-- ĐOẠN ỐNG NỐI -->
+<section class="stack" id="tuyen" role="tabpanel" aria-labelledby="t-tuyen" style="padding-top:0">
+  <div class="card">
+    <h2>Tuyến cần nối</h2>
+    <p class="lead">Xếp các thứ trên tuyến theo đúng thứ tự từ mốc A tới mốc B. Đoạn màu cam là ống cần cắt, bấm ↑↓ để đổi vị trí.</p>
+    <ol class="run" id="run"></ol>
+    <div class="addrow"><select id="add" aria-label="Thêm van hoặc phụ kiện"></select></div>
+    <label class="f"><span>Khoảng đo thực tế từ A tới B <small>(theo tim ống)</small></span><div class="inp big"><input id="meas" inputmode="decimal" value="2500"><i>mm</i></div></label>
+  </div>
+  <div class="card fig" aria-label="Sơ đồ tuyến"><svg id="strip" viewBox="0 0 360 76"></svg></div>
+  <div class="result" id="r-tuyen" aria-live="polite"></div>
+</section>
+
+<!-- LỆCH TÂM -->
+<section class="stack" id="lech" role="tabpanel" aria-labelledby="t-lech" style="padding-top:0" hidden>
+  <div class="card">
+    <h2>Lệch tâm bằng 2 co</h2>
+    <p class="lead">Hai ống có sẵn song song, lệch nhau, chưa lắp co. Đo độ lệch giữa 2 tim ống và khoảng L giữa 2 đầu ống. Tool ra đoạn ống giữa 2 co, chỗ đặt tâm co, và cho biết phải nối thêm hay cắt bớt ống có sẵn bao nhiêu.</p>
+    <div class="grid">
+      <label class="f"><span>Góc co</span><div class="inp sel"><select id="o-ang">
+        <option value="90">90°</option><option value="60">60°</option><option value="45" selected>45°</option><option value="30">30°</option><option value="22.5">22,5°</option><option value="auto">Tự tìm theo L (cắt co 90° hàn)</option></select></div></label>
+      <label class="f"><span>Lệch ngang (X)</span><div class="inp"><input id="o-X" inputmode="decimal" value="500"><i>mm</i></div></label>
+      <label class="f"><span>Lệch đứng (Y) <small>(0 nếu lệch 1 phương)</small></span><div class="inp"><input id="o-Y" inputmode="decimal" value="0"><i>mm</i></div></label>
+      <label class="f"><span>2 đầu ống có sẵn</span><div class="inp sel"><select id="o-pos">
+        <option value="none">Chưa đo khoảng L</option><option value="gap" selected>Hở nhau (chưa tới nhau)</option><option value="over">Chồng qua nhau</option></select></div></label>
+      <label class="f full" id="o-Lrow"><span>Khoảng L dọc tuyến giữa 2 đầu ống <small>(đo song song tim ống, từ đầu ống 1 tới đầu ống 2)</small></span><div class="inp"><input id="o-L" inputmode="decimal" value="900"><i>mm</i></div></label>
+    </div>
+  </div>
+  <div class="card fig" aria-label="Sơ đồ lệch tâm"><svg id="fig-o" viewBox="0 0 360 160"></svg>
+    <div class="legend"><span><svg viewBox="0 0 34 8" width="34" height="8"><path d="M0 4H34" style="stroke:var(--ink);stroke-width:1.3;stroke-dasharray:9 3 2 3"/></svg>tim ống</span><span><svg viewBox="0 0 12 12" width="12" height="12"><circle cx="6" cy="6" r="4" style="fill:var(--surface);stroke:var(--ink);stroke-width:1.6"/></svg>tâm co (giao 2 đường tim)</span><span><svg viewBox="0 0 20 8" width="20" height="8"><rect width="20" height="8" rx="1" style="fill:var(--accent)"/></svg>ống cần cắt</span></div>
+    <p class="lead" style="font-size:13.5px">Cách đo: căng dây hoặc dọi theo tim 2 ống, đo khoảng cách giữa 2 đường tim (lệch H), không đo mép ống. Ống lệch cả ngang lẫn đứng thì đo riêng X và Y.</p></div>
+  <div class="result" id="r-lech" aria-live="polite"></div>
+</section>
+
+<!-- TUYẾN NHIỀU ĐOẠN -->
+<section class="stack" id="nhieu" role="tabpanel" aria-labelledby="t-nhieu" style="padding-top:0" hidden>
+  <div class="card">
+    <h2>Tuyến nhiều đoạn</h2>
+    <p class="lead">Tuyến có nhiều co, ví dụ từ ống chính xuống bơm hay chiller. Chia tuyến thành từng đoạn thẳng giữa 2 tâm co, nhập hướng và chiều dài tâm–tâm của từng đoạn, xếp van trên đoạn đó. Tool ra kích thước từng ống cần cắt.</p>
+    <div class="route" id="route"></div>
+    <div class="actions"><button class="btn ghost" id="rt-addleg" type="button">+ Thêm đoạn</button></div>
+  </div>
+  <div class="card fig" aria-label="Sơ đồ tuyến nhiều đoạn">
+    <div class="seg" role="group" aria-label="Kiểu xem">
+      <button id="rt-2d" type="button" aria-pressed="true">Bản vẽ</button>
+      <button id="rt-3d" type="button" aria-pressed="false">3D xoay được</button>
+    </div>
+    <div id="rt3d-wrap" hidden>
+      <div id="rt3d" class="v3"></div>
+      <div class="actions" style="margin-top:8px">
+        <button class="ib" type="button" data-view3="iso">Góc 3D</button>
+        <button class="ib" type="button" data-view3="front">Mặt đứng</button>
+        <button class="ib" type="button" data-view3="top">Từ trên</button>
+        <button class="ib" type="button" data-view3="side">Bên hông</button>
+      </div>
+      <p class="lead" style="font-size:13.5px;margin-top:6px" id="rt3d-msg">Kéo 1 ngón để xoay. Chụm 2 ngón để phóng to, kéo 2 ngón để di chuyển. Trên máy tính: kéo chuột để xoay, cuộn để phóng to, chuột phải để di chuyển.</p>
+    </div>
+    <div class="projbar" id="rt2d-opts"><label class="f"><span>Kiểu hình</span><div class="inp sel"><select id="rt-view"><option value="auto">Tự động (isometric khi có hướng vào/ra)</option><option value="flat">Mặt đứng</option><option value="iso">Isometric 3D</option></select></div></label></div>
+    <svg id="fig-rt" viewBox="0 0 360 300"></svg>
+    <p class="lead" style="font-size:13.5px" id="fig-rt-cap"></p></div>
+  <div class="result" id="r-nhieu" aria-live="polite"></div>
+</section>
+
+<!-- VẬT TƯ DỰ ÁN -->
+<section class="stack" id="vattu" role="tabpanel" aria-labelledby="t-vattu" style="padding-top:0" hidden>
+  <div class="card">
+    <div class="brand"><h2 id="lib-h">Vật tư dự án</h2><span class="status" id="lib-mode"></span></div>
+    <p class="lead">Mỗi dự án một bộ vật tư theo đúng hãng. Nhập chiều dài theo catalogue, tool cắt ống sẽ dùng số này thay cho số mặc định.</p>
+    <div class="actions">
+      <button class="btn" id="b-newproj">Dự án mới</button>
+      <button class="btn ghost" id="b-additem">Thêm vật tư</button>
+      <button class="btn ghost" id="b-export" hidden>Xuất file</button>
+      <label class="btn ghost" id="b-import" hidden style="display:inline-flex;align-items:center">Nhập file<input type="file" id="f-import" accept=".json,application/json" hidden></label>
+    </div>
+    <form id="f-proj" class="grid" hidden>
+      <label class="f full"><span>Tên dự án</span><div class="inp"><input id="pj-name" class="txt" placeholder="VD: Phòng bơm tòa A"></div></label>
+      <label class="f"><span>Ống của dự án</span><div class="inp sel"><select id="pj-mat"></select></div></label>
+      <label class="f"><span>Kiểu nối chính</span><div class="inp sel"><select id="pj-fam"></select></div></label>
+      <div class="actions full"><button class="btn" type="submit">Lưu dự án</button><button class="btn ghost" type="button" id="pj-cancel">Huỷ</button></div>
+    </form>
+  </div>
+
+  <form class="card" id="f-item" hidden>
+    <h2 id="fi-h">Thêm vật tư</h2>
+    <div class="preview"><div class="pic" id="fi-pic"></div><div class="lead" id="fi-picnote">Hình 3D vẽ sẵn theo loại. Tải ảnh catalogue hoặc ảnh chụp mô hình 3D để thay.</div></div>
+    <div class="grid">
+      <label class="f"><span>Loại</span><div class="inp sel"><select id="fi-cat"></select></div></label>
+      <label class="f"><span>Ký hiệu trên bản vẽ</span><div class="inp"><input id="fi-code" class="txt" placeholder="VD: BFV"></div></label>
+      <label class="f full"><span>Tên / model</span><div class="inp"><input id="fi-name" class="txt" placeholder="VD: Van bướm tay gạt 700G"></div></label>
+      <label class="f"><span>Hãng</span><div class="inp"><input id="fi-brand" class="txt" placeholder="VD: Tomoe"></div></label>
+      <label class="f"><span>Kiểu đầu nối</span><div class="inp sel"><select id="fi-ends"></select></div></label>
+      <label class="f full" id="fi-imgrow"><span>Ảnh 3D / ảnh catalogue <small>(tuỳ chọn)</small></span><input type="file" id="fi-img" accept="image/png,image/jpeg,image/webp,image/gif" style="font:14px var(--f-body);color:var(--muted)"></label>
+    </div>
+    <div><h3 id="fi-lenh">Chiều dài theo cỡ (mm)</h3><p class="lead" style="font-size:13px" id="fi-lenhint"></p></div>
+    <div class="dngrid" id="fi-lens"></div>
+    <div class="note bad" id="fi-err" hidden></div>
+    <div class="actions"><button class="btn" type="submit" id="fi-save">Lưu vật tư</button><button class="btn ghost" type="button" id="fi-cancel">Huỷ</button></div>
+  </form>
+
+  <div class="card"><div class="items" id="lib-items"></div></div>
+</section>
+
+<!-- BẢNG TRA -->
+<section class="stack" id="tra" role="tabpanel" aria-labelledby="t-tra" style="padding-top:0" hidden>
+  <div class="card">
+    <h2 id="tra-h">Bảng tra</h2>
+    <p class="lead">Kích thước tâm → đầu phụ kiện và chiều dài van mà tool đang dùng. Số của vật tư dự án được ưu tiên hơn số mặc định.</p>
+    <div class="tbl" id="tra-body"></div>
+  </div>
+</section>
+
+<details class="more card">
+  <summary>Cách đo cho đúng</summary>
+  <p class="lead">Đo theo tim ống. Mốc là tâm co hay tâm ống chính thì đo tới đường tim. Mốc là mặt bích (bơm, van có sẵn) thì đo tới mặt bích, không tính gioăng.</p>
+  <p class="lead">Ống thép nối bích: tool coi như bích hàn trượt, ống lùi vào trong bích một đoạn để hàn mặt trong. Van bướm kiểu wafer có lớp lót cao su thì không cần gioăng: sửa dày gioăng về 0 nếu cả tuyến như vậy.</p>
+  <p class="lead">Số mặc định theo tiêu chuẩn: co, tê, côn hàn ASME B16.9; phụ kiện ren ASME B16.3; van DIN/EN; phụ kiện rãnh và nhựa là số tham khảo. Dự án dùng hãng nào thì nhập vật tư hãng đó ở tab Vật tư dự án.</p>
+</details>
+<p class="foot">Công ty TNHH Công Nghệ UTC · Kiểm tra lại số đo trước khi cắt.</p>
+</main>
+
+<script>
+// DATA-START
+const DN = [15, 20, 25, 32, 40, 50, 65, 80, 100, 125, 150, 200, 250, 300];
+const MAT = {
+  gi:   { name: 'Thép tráng kẽm', fams: ['weld', 'thr', 'grv'], steel: true,
+          od: [21.3, 26.9, 33.7, 42.4, 48.3, 60.3, 76.1, 88.9, 114.3, 139.7, 165.1, 219.1, 273, 323.9],
+          wall: [2.6, 2.6, 3.2, 3.2, 3.2, 3.6, 3.6, 4.0, 4.5, 5.0, 5.0, 6.35, 6.35, 6.35] },
+  bk:   { name: 'Thép đen SCH40', fams: ['weld', 'grv'], steel: true,
+          od: [21.3, 26.7, 33.4, 42.2, 48.3, 60.3, 73.0, 88.9, 114.3, 141.3, 168.3, 219.1, 273.0, 323.8],
+          wall: [2.77, 2.87, 3.38, 3.56, 3.68, 3.91, 5.16, 5.49, 6.02, 6.55, 7.11, 8.18, 9.27, 10.31] },
+  upvc: { name: 'Nhựa uPVC', fams: ['glue'],
+          od: [21, 27, 34, 42, 49, 60, 75, 90, 114, 140, 168, 220, 250, 315],
+          wall: [1.6, 1.8, 2.0, 2.1, 2.4, 2.9, 3.6, 4.3, 5.5, 6.7, 8.0, 10.5, 11.9, 15.0] },
+  ppr:  { name: 'Nhựa PPR', fams: ['heat'],
+          od: [20, 25, 32, 40, 50, 63, 75, 90, 110, 125, 160, 200, 250, 315],
+          wall: [1.9, 2.3, 2.9, 3.7, 4.6, 5.8, 6.8, 8.2, 10.0, 11.4, 14.6, 18.2, 22.7, 28.6] },
+};
+const FAM = { weld: 'Hàn (phụ kiện hàn)', thr: 'Ren', grv: 'Rãnh (khớp nối nhanh)', glue: 'Dán keo', heat: 'Hàn nhiệt' };
+const N = null;
+// tâm → đầu phụ kiện (mm), theo thứ tự DN ở trên
+const FIT = {
+  weld: { e90: [38, 29, 38, 48, 57, 76, 95, 114, 152, 190, 229, 305, 381, 457],
+          e45: [16, 14, 22, 25, 29, 35, 44, 51, 64, 79, 95, 127, 159, 190],
+          tee: [25, 29, 38, 48, 57, 64, 76, 86, 105, 124, 143, 178, 216, 254],
+          red: [38, 38, 51, 51, 64, 76, 89, 89, 102, 127, 140, 152, 178, 203], src: 'ASME B16.9' },
+  thr:  { e90: [22, 25, 29, 33, 37, 43, 50, 57, 70, N, N, N, N, N],
+          e45: [16, 19, 22, 25, 27, 32, 38, 43, 52, N, N, N, N, N],
+          tee: [22, 25, 29, 33, 37, 43, 50, 57, 70, N, N, N, N, N],
+          red: [N, N, N, N, N, N, N, N, N, N, N, N, N, N], src: 'ASME B16.3' },
+  grv:  { e90: [N, N, 57, 70, 70, 83, 95, 108, 127, 140, 165, 197, 229, 254],
+          e45: [N, N, 44, 44, 44, 51, 57, 64, 76, 83, 89, 108, 121, 133],
+          tee: [N, N, 57, 70, 70, 83, 95, 108, 127, 140, 165, 197, 229, 254],
+          red: [N, N, 64, 64, 64, 64, 64, 64, 76, 89, 102, 127, 152, 178], src: 'phụ kiện rãnh (tham khảo)' },
+};
+const THREAD = [13, 14, 17, 18, 18, 19, 29, 30, 33];   // chiều sâu ăn ren (mm), tới DN100
+// chiều dài mặt bích → mặt bích (mm)
+const VALVE = {
+  bfly: { name: 'Van bướm (wafer)', len: [N, N, 33, 33, 33, 43, 46, 46, 52, 56, 56, 60, 68, 78] },
+  gate: { name: 'Van cổng (bích)', len: [N, N, N, N, 140, 150, 170, 180, 190, 200, 210, 230, 250, 270] },
+  chkw: { name: 'Van 1 chiều đĩa kép (wafer)', len: [N, N, N, N, N, 60, 67, 73, 73, 86, 98, 127, 146, 181] },
+  chks: { name: 'Van 1 chiều lá lật (bích)', len: [N, N, N, N, N, 203, 216, 241, 292, 330, 356, 495, 622, 698] },
+  ystr: { name: 'Y lọc (bích)', len: [N, N, N, N, N, 230, 290, 310, 350, 400, 480, 600, 730, 850] },
+  flex: { name: 'Khớp nối mềm cao su', len: [N, N, 95, 95, 95, 105, 115, 130, 135, 170, 180, 205, 240, 260] },
+};
+// loại vật tư trong thư viện dự án
+const CATS = {
+  bfly: 'Van bướm', gate: 'Van cổng', chkw: 'Van 1 chiều đĩa kép', chks: 'Van 1 chiều lá lật', ystr: 'Y lọc', flex: 'Khớp nối mềm',
+  e90: 'Co 90°', e45: 'Co 45°', tee: 'Tê', red: 'Côn thu', other: 'Khác (đồng hồ, lọc, bích…)',
+};
+const FITCATS = ['e90', 'e45', 'tee', 'red'];
+const ENDS = { F: 'Bích', W: 'Hàn', T: 'Ren', G: 'Rãnh', S: 'Dán keo / hàn nhiệt' };
+// DATA-END
+
+// thư viện vật tư của dự án đang chọn (nạp từ kho chung)
+const lib = { projects: [], items: [], pid: null };
+function projItem(id) { return lib.items.find(x => x.id === id); }
+function projLen(it, i) { const v = it && it.lens ? it.lens[DN[i]] : null; return typeof v === 'number' ? v : null; }
+function projFit(kind, i) { const it = lib.items.find(x => x.cat === kind && projLen(x, i) != null); return it ? { v: projLen(it, i), it } : null; }
+
+// CALC-START
+const rad = d => d * Math.PI / 180, deg = r => r * 180 / Math.PI;
+function sockDepth(mat, od) { return mat === 'ppr' ? 0.3 * od + 8.5 : 0.5 * od + 6; }
+// chiều dài tâm → đầu của phụ kiện; vật tư dự án ưu tiên; null = chưa có số
+function fitLen(S, kind) {
+  const p = projFit(kind, S.i); if (p) return p.v;
+  if (S.fam === 'glue' || S.fam === 'heat') {
+    const sd = sockDepth(S.mat, S.od);
+    const z = { e90: 0.5 * S.od + 1, e45: 0.25 * S.od + 1, tee: 0.5 * S.od + 1, red: 10 }[kind];
+    return kind === 'red' ? 2 * sd + z : z + sd;
+  }
+  return FIT[S.fam][kind][S.i];
+}
+function famType(fam) { return { weld: 'W', thr: 'T', grv: 'G', glue: 'S', heat: 'S' }[fam]; }
+function endType(el, S) {
+  if (el.t === 'pipe' || el.t === 'kpipe') return 'P';
+  if (el.t === 'pi') { const it = projItem(el.id); return it && it.ends ? it.ends : 'F'; }
+  if (el.t === 'flg' || VALVE[el.t] || el.t === 'cust') return 'F';
+  if (el.t === 'exist') return 'X';
+  return famType(S.fam);          // co, tê, côn
+}
+// phần ống mất đi (+) hoặc được thêm (−) ở chỗ ống cắt gặp phần tử kiểu o
+function pipeEnd(o, S) {
+  switch (o) {
+    case 'F': return { v: S.g + S.s, txt: `bích hàn trượt: gioăng ${S.g} + ống lùi ${S.s}` };
+    case 'W': return { v: S.w, txt: `khe hàn ${S.w}` };
+    case 'T': return { v: -THREAD[Math.min(S.i, 8)], txt: `ren ăn vào ${THREAD[Math.min(S.i, 8)]}` };
+    case 'G': return { v: S.c, txt: `khe khớp rãnh ${S.c}` };
+    case 'S': { const d = sockDepth(S.mat, S.od); return { v: -d, txt: `cắm sâu vào miệng ${Math.round(d)}` }; }
+    case 'X': return S.fam === 'weld' ? { v: S.w, txt: `hàn nối ống, khe ${S.w}` } : S.fam === 'grv' ? { v: S.c, txt: `khớp rãnh, khe ${S.c}` } : { v: 0, txt: 'măng sông, hai đầu ống chạm nhau' };
+  }
+}
+function joint(a, b, S) {
+  const ta = endType(a, S), tb = endType(b, S);
+  if (ta === 'P' && tb === 'P') return pipeEnd('X', S);
+  if (ta === 'P' || tb === 'P') return pipeEnd(ta === 'P' ? tb : ta, S);
+  if (ta === 'F' && tb === 'F') return { v: S.g, txt: `gioăng ${S.g}` };
+  if (ta === tb && ta === 'W') return { v: S.w, txt: `khe hàn ${S.w}` };
+  if (ta === tb && ta === 'G') return { v: S.c, txt: `khe khớp rãnh ${S.c}` };
+  if (ta === 'F' || tb === 'F') return { v: S.g, txt: `gioăng ${S.g}`, warn: 'Phụ kiện nối thẳng vào bích cần bích cổ hàn hoặc bích rãnh: cộng chiều dài bích vào phụ kiện.' };
+  if (ta === 'X' || tb === 'X') return { v: 0, txt: '', warn: 'Đầu ống có sẵn phải nằm sát ống cần cắt.' };
+  return { v: 0, txt: '', warn: 'Hai phụ kiện ren/nhựa không nối thẳng được, cần 1 đoạn ống ngắn.' };
+}
+function elLen(el, S) {
+  if (el.t === 'pipe' || el.t === 'flg' || el.t === 'exist') return 0;
+  if (el.custom != null) return el.custom;
+  if (el.t === 'cE90') return fitLen(S, 'e90');
+  if (el.t === 'cE45') return fitLen(S, 'e45');
+  if (el.t === 'cTee') return fitLen(S, 'tee');
+  if (el.t === 'teeRun') { const x = fitLen(S, 'tee'); return x == null ? null : 2 * x; }
+  if (el.t === 'red') return fitLen(S, 'red');
+  if (el.t === 'pi') { const it = projItem(el.id), v = projLen(it, S.i); return v == null ? null : it.cat === 'tee' ? 2 * v : v; }
+  if (VALVE[el.t]) { const p = projFit(el.t, S.i); return p ? p.v : VALVE[el.t].len[S.i]; }
+  return 0;
+}
+function calcRun(S, els, meas) {
+  if (!(meas > 0)) return { err: 'Nhập khoảng đo thực tế.' };
+  const lines = [], warns = [];
+  let sum = 0, missing = [];
+  els.forEach(el => { const L = elLen(el, S); if (L == null) missing.push(el); else if (L) { sum += L; lines.push({ el, v: L }); } });
+  if (missing.length) return { err: 'Chưa có chiều dài DN' + DN[S.i] + ' cho: ' + missing.map(elName).join(', ') + '. Nhập tay trong tuyến hoặc bổ sung ở tab Vật tư dự án.' };
+  let jsum = 0;
+  for (let k = 0; k < els.length - 1; k++) {
+    const j = joint(els[k], els[k + 1], S);
+    if (j.warn && !warns.includes(j.warn)) warns.push(j.warn);
+    if (j.v) { jsum += j.v; lines.push({ j, v: j.v, a: els[k], b: els[k + 1] }); }
+  }
+  const cut = meas - sum - jsum;
+  return { cut, sum, jsum, lines, warns, err: cut <= 0 ? 'Khoảng đo ngắn hơn tổng van và phụ kiện ' + Math.round(sum + jsum) + ' mm. Kiểm tra lại số đo hoặc danh sách.' : null };
+}
+function elbowA(S, ang) {
+  if (ang === 90) return fitLen(S, 'e90');
+  if (ang === 45) return fitLen(S, 'e45');
+  if (S.fam === 'weld') { const p = projFit('e90', S.i), R = p ? p.v : FIT.weld.e90[S.i]; return R * Math.tan(rad(ang) / 2); }  // cắt từ co 90° LR
+  return null;
+}
+// Lm: khoảng dọc tuyến giữa 2 đầu ống có sẵn (âm = 2 ống chồng qua nhau), null = chưa đo
+function calcOffset(S, ang, X, Y, Lm) {
+  const H = Math.hypot(X, Y);
+  if (!(H > 0)) return { err: 'Nhập độ lệch.' };
+  const pe = pipeEnd(famType(S.fam), S);
+  const hasL = Lm != null && isFinite(Lm);
+  const R90 = (projFit('e90', S.i) || {}).v || FIT.weld.e90[S.i];
+  let auto = false;
+  if (ang === 'auto') {
+    if (S.fam !== 'weld') return { err: 'Tự tìm góc chỉ dùng cho co hàn (cắt từ co 90°). Chọn góc co có sẵn.' };
+    if (!hasL) return { err: 'Tự tìm góc cần đo khoảng L giữa 2 đầu ống có sẵn.' };
+    // góc θ sao cho 2 co vừa khít khoảng L, không phải thêm hay cắt ống
+    const f = a => (Lm - 2 * (R90 * Math.tan(rad(a) / 2) + pe.v)) * Math.sin(rad(a)) - H * Math.cos(rad(a));
+    let lo = null, hi = null, prev = 0.5;
+    for (let a = 1; a <= 90.0001; a += 0.5) { if (f(a) >= 0) { lo = prev; hi = a; break; } prev = a; }
+    if (hi === null) return { err: 'Khoảng L quá ngắn để lệch ' + Math.round(H) + ' mm, kể cả với co 90°. Phải cắt bớt ống có sẵn: chọn co 90° hoặc 45° để xem cắt bao nhiêu.' };
+    for (let i = 0; i < 50; i++) { const m = (lo + hi) / 2; if (f(m) >= 0) hi = m; else lo = m; }
+    ang = Math.round(hi * 10) / 10; auto = true;
+  }
+  const A = elbowA(S, ang);
+  if (A == null) return { err: 'Không có co ' + String(ang).replace('.', ',') + '° cho kiểu nối này. Chọn 45° hoặc 90°.' };
+  const travel = H / Math.sin(rad(ang));
+  const run = ang >= 90 ? 0 : H / Math.tan(rad(ang));
+  const cut = travel - 2 * A - 2 * pe.v;
+  const E = A + pe.v;                 // từ đầu ống có sẵn tới tâm co
+  const Lneed = 2 * E + run;          // khoảng dọc tuyến cần giữa 2 đầu ống
+  let diff = null, piece = null, px = null;
+  if (hasL) { diff = Lm - Lneed; if (diff > 1) { px = pipeEnd('X', S); piece = diff - px.v; } }
+  const arcs = S.fam === 'weld' && ang !== 90 && ang !== 45 ? { o: (R90 + S.od / 2) * rad(ang), i: (R90 - S.od / 2) * rad(ang) } : null;
+  return { H, A, ang, auto, travel, run, cut, pe, E, Lneed, Lm: hasL ? Lm : null, diff, piece, px, arcs, roll: deg(Math.atan2(Y, X)), err: cut <= 0 ? 'Hai co chạm nhau. Chọn góc co nhỏ hơn.' : null };
+}
+// CALC-END
+
+const NAME = { cE90: 'Tâm co 90°', cE45: 'Tâm co 45°', cTee: 'Tâm ống chính (qua tê)', flg: 'Mặt bích có sẵn (bơm, van, thiết bị)', exist: 'Đầu ống có sẵn',
+  pipe: 'ỐNG CẦN CẮT', kpipe: 'Ống đã biết chiều dài', teeRun: 'Tê đi thẳng', red: 'Côn thu', cust: 'Phụ kiện khác (bích)' };
+Object.keys(VALVE).forEach(k => NAME[k] = VALVE[k].name);
+function elName(el) {
+  if (el.t === 'pi') { const it = projItem(el.id); return it ? it.name || CATS[it.cat] : 'Vật tư đã xoá'; }
+  return NAME[el.t];
+}
+const ANCH = ['cTee', 'cE90', 'cE45', 'flg', 'exist'];
+const MIDS = ['bfly', 'chkw', 'chks', 'gate', 'ystr', 'flex', 'teeRun', 'red', 'cust'];
+
+const $ = id => document.getElementById(id);
+const num = el => { const x = parseFloat(String(el.value).replace(',', '.')); return isFinite(x) ? x : NaN; };
+const mm = x => String(Math.round(x));
+const sg = x => (x < 0 ? '+ ' : '− ') + mm(Math.abs(x));
+const dg = x => x.toFixed(1).replace('.', ',') + '°';
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const texts = {};
+
+// ---------- ký hiệu 2D và hình 3D ----------
+function symbol(cat) {
+  const p = {
+    bfly: '<path d="M8 5L52 25V5L8 25Z" fill="none"/><path d="M30 3V27"/><circle cx="30" cy="15" r="3" fill="currentColor"/>',
+    gate: '<path d="M8 5L52 25V5L8 25Z" fill="none"/>',
+    chkw: '<path d="M8 5L30 15L8 25Z" fill="none"/><path d="M52 5L30 15L52 25Z" fill="currentColor"/>',
+    chks: '<path d="M8 5L30 15L8 25Z" fill="none"/><path d="M52 5L30 15L52 25Z" fill="currentColor"/><path d="M14 2H34" /><path d="M30 0L34 2L30 4" fill="none"/>',
+    ystr: '<path d="M2 12H58"/><path d="M22 12L40 27"/><path d="M33 21L44 30" stroke-dasharray="2 2"/>',
+    flex: '<path d="M2 15H14M46 15H58M14 6V24M46 6V24"/><path d="M14 15Q20 4 26 15T38 15T46 15" fill="none"/>',
+    e90: '<path d="M6 4V16Q6 25 15 25H54" fill="none"/>',
+    e45: '<path d="M2 25H24L48 3" fill="none"/>',
+    tee: '<path d="M2 8H58M30 8V28"/>',
+    red: '<path d="M8 4L52 10V20L8 26Z" fill="none"/>',
+    other: '<path d="M2 26H58M30 26V16"/><circle cx="30" cy="9" r="7" fill="none"/><path d="M30 9L34 6"/>',
+  }[cat] || '';
+  return `<svg class="sym" viewBox="0 0 60 30" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+}
+let g3 = 0;
+// cat: loại vật tư, hoặc mốc tuyến (aTee, aE90, aE45, aFlg, aExist); mirror lật ngang cho mốc B; bare = chỉ trả nội dung, không bọc <svg>
+function draw3D(cat, mirror, bare) {
+  const id = 'g' + (++g3);
+  const grad = (n, a) => `<linearGradient id="${id}${n}h" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--${a}-lo)"/><stop offset=".3" style="stop-color:var(--${a}-hi)"/><stop offset=".65" style="stop-color:var(--${a}-mid)"/><stop offset="1" style="stop-color:var(--${a}-lo)"/></linearGradient>`
+    + `<linearGradient id="${id}${n}v" x1="0" y1="0" x2="1" y2="0"><stop offset="0" style="stop-color:var(--${a}-lo)"/><stop offset=".3" style="stop-color:var(--${a}-hi)"/><stop offset=".65" style="stop-color:var(--${a}-mid)"/><stop offset="1" style="stop-color:var(--${a}-lo)"/></linearGradient>`;
+  const defs = `<defs>${grad('p', 'p')}${grad('v', 'v')}${grad('r', 'r')}<radialGradient id="${id}rs" cx=".35" cy=".3" r=".8"><stop offset="0" style="stop-color:var(--r-hi)"/><stop offset=".6" style="stop-color:var(--r-mid)"/><stop offset="1" style="stop-color:var(--r-lo)"/></radialGradient></defs>`;
+  // trụ nằm ngang và trụ đứng, có mặt cắt elip để ra khối
+  const cyl = (x1, x2, cy, r, m) => `<ellipse cx="${x1}" cy="${cy}" rx="${r * .28}" ry="${r}" style="fill:var(--${m}-lo)"/><rect x="${x1}" y="${cy - r}" width="${x2 - x1}" height="${2 * r}" fill="url(#${id}${m}h)"/><ellipse cx="${x2}" cy="${cy}" rx="${r * .28}" ry="${r}" style="fill:var(--${m}-mid);stroke:var(--${m}-lo);stroke-width:.8"/>`;
+  const vcyl = (cx, y1, y2, r, m) => `<ellipse cx="${cx}" cy="${y2}" rx="${r}" ry="${r * .28}" style="fill:var(--${m}-lo)"/><rect x="${cx - r}" y="${y1}" width="${2 * r}" height="${y2 - y1}" fill="url(#${id}${m}v)"/><ellipse cx="${cx}" cy="${y1}" rx="${r}" ry="${r * .28}" style="fill:var(--${m}-hi);stroke:var(--${m}-lo);stroke-width:.8"/>`;
+  const flg = (x, m) => cyl(x, x + 7, 55, 24, m || 'p') + [-15, 0, 15].map(d => `<circle cx="${x + 9}" cy="${55 + d}" r="1.6" style="fill:var(--p-lo)"/>`).join('');
+  const stubs = (a, b) => cyl(4, a, 55, 14, 'p') + cyl(b, 156, 55, 14, 'p');
+  const arrow = `<path d="M60 16H100M92 11L100 16L92 21" style="fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round;stroke-linejoin:round"/>`;
+  const bend = (d) => `<path d="${d}" style="fill:none;stroke:var(--p-lo);stroke-width:30"/><path d="${d}" style="fill:none;stroke:var(--p-mid);stroke-width:24"/><path d="${d}" transform="translate(-4 -5)" style="fill:none;stroke:var(--p-hi);stroke-width:6;stroke-linecap:round;opacity:.85"/>`;
+  let b = '';
+  switch (cat) {
+    case 'bfly': b = stubs(58, 102) + flg(56) + cyl(66, 94, 55, 21, 'v') + flg(97) + vcyl(80, 22, 36, 5, 'v') + `<rect x="76" y="14" width="56" height="7" rx="3.5" style="fill:var(--accent)"/>`; break;
+    case 'gate': b = stubs(40, 120) + flg(38) + cyl(46, 114, 55, 20, 'v') + flg(115) + vcyl(80, 14, 38, 9, 'v') + vcyl(80, 6, 14, 2, 'p') + `<ellipse cx="80" cy="7" rx="24" ry="6" style="fill:none;stroke:var(--accent);stroke-width:3.5"/>`; break;
+    case 'chkw': b = stubs(58, 102) + flg(56) + cyl(66, 94, 55, 22, 'v') + flg(97) + arrow; break;
+    case 'chks': b = stubs(40, 120) + flg(38) + cyl(46, 114, 55, 18, 'v') + vcyl(80, 30, 42, 15, 'v') + flg(115) + arrow; break;
+    case 'ystr': b = stubs(40, 120) + flg(38) + `<g transform="rotate(-38 82 55)">${vcyl(82, 55, 100, 12, 'v')}</g>` + cyl(46, 114, 55, 17, 'v') + flg(115); break;
+    case 'flex': b = stubs(40, 120) + flg(38) + `<ellipse cx="80" cy="55" rx="34" ry="27" fill="url(#${id}rs)"/><path d="M62 33Q56 55 62 77M98 33Q104 55 98 77" style="fill:none;stroke:var(--r-hi);stroke-width:1.5;opacity:.6"/>` + flg(115); break;
+    case 'e90': b = bend('M8 30H62A38 38 0 0 1 100 68V104') + `<ellipse cx="8" cy="30" rx="4" ry="15" style="fill:var(--p-mid);stroke:var(--p-lo)"/>`; break;
+    case 'e45': b = bend('M6 34H62Q80 34 92 50L122 92') + `<ellipse cx="6" cy="34" rx="4" ry="15" style="fill:var(--p-mid);stroke:var(--p-lo)"/>`; break;
+    case 'tee': b = vcyl(80, 40, 100, 14, 'p') + cyl(8, 152, 40, 15, 'p'); break;
+    case 'red': b = `<ellipse cx="22" cy="55" rx="7" ry="26" style="fill:var(--p-lo)"/><path d="M22 29L138 41V69L22 81Z" fill="url(#${id}ph)"/><ellipse cx="138" cy="55" rx="4" ry="14" style="fill:var(--p-mid);stroke:var(--p-lo)"/>`; break;
+    case 'aTee': b = vcyl(62, 2, 108, 22, 'p') + cyl(78, 160, 55, 14, 'p'); break;
+    case 'aE90': b = bend('M62 -4V18A37 37 0 0 0 99 55H160'); break;
+    case 'aE45': b = bend('M34 0L66 34Q86 55 110 55H160'); break;
+    case 'aFlg': b = `<rect x="24" y="22" width="40" height="66" rx="6" style="fill:var(--v-mid);stroke:var(--v-lo);stroke-width:2"/><rect x="30" y="28" width="10" height="54" rx="3" style="fill:var(--v-hi);opacity:.35"/>` + flg(62) + cyl(71, 160, 55, 14, 'p'); break;
+    case 'aExist': b = cyl(30, 160, 55, 14, 'p') + `<path d="M36 36V74" style="stroke:var(--ink);stroke-width:2.5"/>`; break;
+    default: b = cyl(4, 156, 70, 14, 'p') + vcyl(80, 34, 58, 4, 'p') + `<circle cx="80" cy="24" r="17" style="fill:var(--p-hi);stroke:var(--p-lo);stroke-width:3"/><path d="M80 24L89 17" style="stroke:var(--accent);stroke-width:2.5;stroke-linecap:round"/>`;
+  }
+  if (mirror) b = `<g transform="translate(160 0) scale(-1 1)">${b}</g>`;
+  if (bare) return defs + b;
+  return `<svg viewBox="0 0 160 110" aria-hidden="true">${defs}${b}</svg>`;
+}
+function picHtml(it) {
+  if (typeof it.imgData === 'string' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(it.imgData)) return `<img src="${it.imgData}" alt="${esc(it.name)}" data-cat="${esc(it.cat)}">`;
+  return it.img ?`<img src="/_blob/${esc(it.img)}" alt="${esc(it.name)}" data-cat="${esc(it.cat)}">` : draw3D(it.cat);
+}
+// ảnh không tải được (đã xoá, người ngoài tổ chức) thì quay về hình vẽ sẵn
+function fallbackPics(root) { root.querySelectorAll('img[data-cat]').forEach(img => img.addEventListener('error', () => { img.outerHTML = draw3D(img.dataset.cat); }, { once: true })); }
+
+// ---------- trạng thái tool ----------
+let st = { mat: 'gi', fam: 'weld', i: 10, od: null, wall: null, pid: null,
+  A: { t: 'cTee', custom: null }, B: { t: 'flg' },
+  mid: [{ t: 'pipe' }, { t: 'bfly', custom: null }, { t: 'chkw', custom: null }, { t: 'flex', custom: null }] };
+const KEY = 'utc-catong-v1';
+try { const d = JSON.parse(localStorage.getItem(KEY) || 'null'); if (d && d.mid) st = Object.assign(st, d); } catch (e) {}
+function save() { try { const d = Object.assign({}, st, { inputs: {} }); ['pg', 'pw', 'ps', 'pc', 'meas', 'o-ang', 'o-X', 'o-Y', 'o-pos', 'o-L'].forEach(k => d.inputs[k] = $(k).value); localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} }
+if (st.inputs) Object.keys(st.inputs).forEach(k => { if ($(k)) $(k).value = st.inputs[k]; });
+lib.pid = st.pid;
+if (!st.route || !st.route.legs) st.route = defRoute();
+
+function S() {
+  const m = MAT[st.mat];
+  const od = st.od != null ? st.od : m.od[st.i], wall = st.wall != null ? st.wall : m.wall[st.i];
+  const s = num($('ps'));
+  return { mat: st.mat, fam: st.fam, i: st.i, od, wall, g: num($('pg')) || 0, w: num($('pw')) || 0, c: num($('pc')) || 0, s: isFinite(s) ? s : Math.round(wall) };
+}
+
+function fillPipe() {
+  const m = MAT[st.mat];
+  $('mat').innerHTML = Object.keys(MAT).map(k => `<option value="${k}"${k === st.mat ? ' selected' : ''}>${MAT[k].name}</option>`).join('');
+  if (!m.fams.includes(st.fam)) st.fam = m.fams[0];
+  $('fam').innerHTML = m.fams.map(f => `<option value="${f}"${f === st.fam ? ' selected' : ''}>${FAM[f]}</option>`).join('');
+  $('dn').innerHTML = DN.map((d, k) => {
+    const ok = st.fam !== 'thr' || k <= 8;
+    return `<option value="${k}"${k === st.i ? ' selected' : ''}${ok ? '' : ' disabled'}>DN${d} · ${m.od[k]}</option>`;
+  }).join('');
+  if (st.fam === 'thr' && st.i > 8) { st.i = 8; $('dn').value = 8; }
+  const s = S();
+  $('od').value = s.od; $('wall').value = s.wall;
+  $('kgm').value = m.steel ? (0.02466 * s.wall * (s.od - s.wall)).toFixed(2).replace('.', ',') : '—';
+  $('ps').placeholder = '= dày ống (' + Math.round(s.wall) + ')';
+  const pj = lib.projects.find(p => p.id === lib.pid);
+  $('tag').textContent = `DN${DN[st.i]} · ${FAM[st.fam].split(' ')[0]}${pj ? ' · ' + pj.name : ''}`;
+}
+
+function rowHtml(el, where, idx) {
+  const s = S(), L = elLen(el, s);
+  if (where === 'A' || where === 'B') {
+    const opts = ANCH.map(t => `<option value="${t}"${t === el.t ? ' selected' : ''}>${NAME[t]}</option>`).join('');
+    const hasLen = ['cE90', 'cE45', 'cTee'].includes(el.t);
+    const pf = hasLen ? projFit({ cE90: 'e90', cE45: 'e45', cTee: 'tee' }[el.t], s.i) : null;
+    return `<li class="anchor"><span class="ic">${where}</span><div class="nm"><select data-anchor="${where}" aria-label="Mốc ${where}">${opts}</select>${hasLen ? `<small>tâm → đầu phụ kiện${pf && el.custom == null ? ' · ' + esc(pf.it.brand || pf.it.name) : ''}</small>` : ''}</div>
+      <div class="ctl">${hasLen ? `<input data-len="${where}" inputmode="decimal" value="${L == null ? '' : mm(L)}" placeholder="?" class="${el.custom != null ? 'custom' : ''}" aria-label="Chiều dài">` : ''}</div></li>`;
+  }
+  const n = idx + 1, last = st.mid.length - 1;
+  const mv = `<button class="ib" data-up="${idx}" aria-label="Lên"${idx === 0 ? ' disabled' : ''}>↑</button><button class="ib" data-down="${idx}" aria-label="Xuống"${idx === last ? ' disabled' : ''}>↓</button>`;
+  if (el.t === 'pipe') return `<li class="pipe"><span class="ic">✂</span><div class="nm">ỐNG CẦN CẮT<small>kết quả ở dưới</small></div><div class="ctl">${mv}</div></li>`;
+  let sub = el.t === 'teeRun' ? '2 × tâm → đầu' : el.t === 'red' ? 'chiều dài côn' : 'mặt bích → mặt bích';
+  let code = '';
+  if (el.t === 'pi') { const it = projItem(el.id); if (it) { code = it.code ? `<span class="code">${esc(it.code)}</span>` : ''; sub = [it.brand, ENDS[it.ends]].filter(Boolean).map(esc).join(' · '); } }
+  else if (VALVE[el.t]) { const pf = projFit(el.t, s.i); if (pf && el.custom == null) sub = 'theo vật tư dự án: ' + esc(pf.it.brand || pf.it.name); }
+  return `<li><span class="ic">${n}</span><div class="nm">${code}${esc(elName(el))}<small>${sub}</small></div>
+    <div class="ctl"><input data-len="${idx}" inputmode="decimal" value="${L == null ? '' : mm(L)}" placeholder="?" class="${el.custom != null ? 'custom' : ''}" aria-label="Chiều dài">${mv}<button class="ib" data-del="${idx}" aria-label="Xoá">✕</button></div></li>`;
+}
+function renderList() {
+  $('run').innerHTML = rowHtml(st.A, 'A') + st.mid.map((el, k) => rowHtml(el, 'M', k)).join('') + rowHtml(st.B, 'B');
+  const pj = lib.projects.find(p => p.id === lib.pid);
+  const mine = lib.items.filter(it => !['e90', 'e45'].includes(it.cat));
+  $('add').innerHTML = '<option value="">+ Thêm van / phụ kiện vào tuyến</option>'
+    + (pj && mine.length ? `<optgroup label="Vật tư dự án ${esc(pj.name)}">` + mine.map(it => `<option value="pi:${esc(it.id)}">${it.code ? esc(it.code) + ' · ' : ''}${esc(it.name || CATS[it.cat])}</option>`).join('') + '</optgroup>' : '')
+    + '<optgroup label="Mặc định theo tiêu chuẩn">' + MIDS.map(t => `<option value="${t}">${NAME[t]}</option>`).join('') + '</optgroup>';
+}
+
+// sơ đồ tuyến có hình từng món (không theo tỉ lệ: mỗi món một ô bằng nhau, ống cắt lấp phần còn lại)
+const SHORT = { cTee: 'Tê', cE90: 'Co 90°', cE45: 'Co 45°', flg: 'Bích bơm', exist: 'Ống có sẵn', bfly: 'V.bướm', gate: 'V.cổng', chkw: 'V.1 chiều', chks: 'V.1 chiều',
+  ystr: 'Y lọc', flex: 'K.mềm', teeRun: 'Tê', red: 'Côn', cust: 'Phụ kiện' };
+// phần thân phụ kiện (mặt bích tới mặt bích) trong khung hình 160×110, để kéo đúng chiều dài thật
+const EXT3D = { bfly: [56, 104], chkw: [56, 104], gate: [38, 123], chks: [38, 123], ystr: [38, 123], flex: [38, 123], tee: [8, 152], red: [22, 138], other: [4, 156] };
+const PIC = { cTee: 'aTee', cE90: 'aE90', cE45: 'aE45', flg: 'aFlg', exist: 'aExist', teeRun: 'tee', cust: 'other' };
+function strip(els, s, cut) {
+  const CY = 52, BH = 64, sc = BH / 110, BW = 104 * sc;      // ô hình: cắt khung 28..132 của hình 160×110
+  const comps = els.filter(el => el.t !== 'pipe').length;
+  const bw = Math.min(BW, (340 - 70) / Math.max(comps, 1)), k = bw / BW, h = BH * k;
+  const pipeW = 340 - comps * bw;
+  let x = 10, out = '<defs><linearGradient id="cutg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--o-lo)"/><stop offset=".3" style="stop-color:var(--o-hi)"/><stop offset=".65" style="stop-color:var(--accent)"/><stop offset="1" style="stop-color:var(--o-lo)"/></linearGradient></defs>';
+  const labels = [];
+  els.forEach((el, n) => {
+    if (el.t === 'pipe') {
+      const r = 14 * sc * k, w = pipeW;
+      out += `<rect x="${x.toFixed(1)}" y="${(CY - r).toFixed(1)}" width="${w.toFixed(1)}" height="${(2 * r).toFixed(1)}" fill="url(#cutg)"/>`;
+      // bích hàn trượt ở đầu ống nếu bên cạnh là van / bích; mối hàn nếu bên cạnh là phụ kiện hàn
+      [[els[n - 1], x], [els[n + 1], x + w]].forEach(([nb, ex], side) => {
+        if (!nb) return;
+        const t = endType(nb, s), fx = side ? ex - 5 : ex;
+        if (t === 'F') out += `<rect x="${fx.toFixed(1)}" y="${(CY - 24 * sc * k).toFixed(1)}" width="5" height="${(48 * sc * k).toFixed(1)}" rx="1" style="fill:var(--p-mid);stroke:var(--p-lo);stroke-width:.8"/>`;
+        if (t === 'W') out += `<rect x="${(side ? ex - 2 : ex).toFixed(1)}" y="${(CY - r - 1).toFixed(1)}" width="2" height="${(2 * r + 2).toFixed(1)}" style="fill:var(--p-lo)"/>`;
+      });
+      labels.push({ x: x + w / 2, a: 'ỐNG CẮT', b: cut > 0 ? mm(cut) : '—', cut: 1 });
+      x += w; return;
+    }
+    const isB = n === els.length - 1 && n > 0;
+    let cat = PIC[el.t] || el.t;
+    if (el.t === 'pi') { const it = projItem(el.id); cat = it ? (it.cat === 'tee' ? 'tee' : it.cat) : 'other'; }
+    out += `<svg x="${x.toFixed(1)}" y="${(CY - h / 2).toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" viewBox="28 0 104 110">${draw3D(cat, isB, true)}</svg>`;
+    const L = elLen(el, s), it = el.t === 'pi' ? projItem(el.id) : null;
+    labels.push({ x: x + bw / 2, a: it ? (it.code || (CATS[it.cat] || '').split(' ')[0]) : SHORT[el.t], b: L ? mm(L) : el.t === 'flg' ? 'mặt' : '' });
+    x += bw;
+  });
+  // tim ống chạy suốt tuyến
+  out += `<path d="M2 ${CY}H358" style="fill:none;stroke:var(--ink);stroke-width:1;stroke-dasharray:9 3 2 3;opacity:.9"/>`;
+  labels.forEach(l => out += `<text x="${l.x.toFixed(1)}" y="${CY + BH / 2 + 10}" text-anchor="middle" font-size="9" style="fill:${l.cut ? 'var(--accent)' : 'var(--muted)'}">${esc(l.a)}</text>`
+    + (l.b ? `<text x="${l.x.toFixed(1)}" y="${CY + BH / 2 + 21}" text-anchor="middle" font-size="${l.cut ? 11 : 10}" font-weight="700"${l.cut ? ' style="fill:var(--accent)"' : ''}>${l.b}</text>` : ''));
+  // đường kích thước A → B
+  const dy = CY + BH / 2 + 32;
+  out += `<path d="M10 14V${dy + 4}M350 14V${dy + 4}" style="stroke:var(--muted);stroke-width:1;stroke-dasharray:3 2"/><path d="M10 ${dy}H350M7 ${dy + 3}L13 ${dy - 3}M347 ${dy + 3}L353 ${dy - 3}" style="fill:none;stroke:var(--ink);stroke-width:1.2"/>`;
+  out += `<text x="10" y="10" font-size="11" font-weight="700">A</text><text x="350" y="10" text-anchor="end" font-size="11" font-weight="700">B</text>`;
+  out += `<text x="180" y="${dy + 14}" text-anchor="middle" font-size="11">đo theo tim ống A → B: ${mm(num($('meas')) || 0)} mm</text>`;
+  $('strip').setAttribute('viewBox', `0 0 360 ${dy + 20}`);
+  $('strip').innerHTML = out;
+}
+
+function lineLabel(l) {
+  if (l.el) { const it = l.el.t === 'pi' ? projItem(l.el.id) : null; return (it && it.code ? it.code + ' ' : '') + elName(l.el); }
+  const nm = e => e.t === 'pipe' ? 'ống' : (elName(e) || '').split(' (')[0].toLowerCase();
+  return `Mối nối ${nm(l.a)} ↔ ${nm(l.b)}: ${l.j.txt}`;
+}
+function copyBtn(k) { return `<div class="actions"><button class="btn" data-copy="${k}">Sao chép kết quả</button><span class="copied" id="cp-${k}"></span></div>`; }
+
+function renderRun() {
+  const s = S(), els = [st.A, ...st.mid, st.B], meas = num($('meas'));
+  const r = calcRun(s, els, meas), el = $('r-tuyen');
+  strip(els, s, r.cut || 0);
+  if (r.err && !r.lines) { el.innerHTML = '<h2>Đoạn ống cần cắt</h2><div class="note bad">' + esc(r.err) + '</div>'; texts.tuyen = ''; return; }
+  let html = '<h2>Đoạn ống cần cắt</h2>';
+  if (r.err) html += '<div class="note bad">' + esc(r.err) + '</div>';
+  else html += `<div class="big"><div><span>Chiều dài cắt</span><b>${mm(r.cut)}<small>mm</small></b></div><div><span>Ống</span><b style="font-size:30px">DN${DN[s.i]}</b></div></div>`;
+  html += '<table class="kv">' + `<tr><td>Khoảng đo A → B</td><td>${mm(meas)}</td></tr>`
+    + r.lines.map(l => `<tr><td>${esc(lineLabel(l))}</td><td>${sg(l.v)}</td></tr>`).join('')
+    + `<tr class="sum"><td>Ống cắt</td><td>${r.err ? '—' : mm(r.cut)}</td></tr></table>`;
+  r.warns.forEach(w => html += `<div class="note">${w}</div>`);
+  if (!r.err && r.cut < 100) html += '<div class="note">Đoạn ống ngắn dưới 100 mm, khó hàn bích và khó lắp. Cân nhắc dời vị trí ống hoặc đổi phụ kiện.</div>';
+  if (!r.err && r.cut > 6000) html += `<div class="note info">Dài hơn 1 cây ống 6 m: cần nối thêm ${Math.ceil(r.cut / 6000) - 1} mối, mỗi mối nối trừ thêm khe hàn/khớp.</div>`;
+  el.innerHTML = html + (r.err ? '' : copyBtn('tuyen'));
+  const pj = lib.projects.find(p => p.id === lib.pid);
+  texts.tuyen = r.err ? '' : `${pj ? 'DỰ ÁN ' + pj.name + '\n' : ''}CẮT ỐNG DN${DN[s.i]} ${MAT[s.mat].name}, nối ${FAM[s.fam]}\nA: ${NAME[st.A.t]} → B: ${NAME[st.B.t]}\nKhoảng đo: ${mm(meas)} mm\n`
+    + r.lines.map(l => `${lineLabel(l)}: ${sg(l.v)}`).join('\n') + `\n=> ỐNG CẮT: ${mm(r.cut)} mm`;
+}
+
+function renderOffset() {
+  const s = S(), av = $('o-ang').value, X = num($('o-X')) || 0, Y = num($('o-Y')) || 0;
+  const pos = $('o-pos').value, Lv = num($('o-L'));
+  $('o-Lrow').hidden = pos === 'none';
+  const Lm = pos === 'none' || !isFinite(Lv) ? null : pos === 'over' ? -Lv : Lv;
+  const r = calcOffset(s, av === 'auto' ? 'auto' : parseFloat(av), X, Y, Lm), el = $('r-lech'), svg = $('fig-o');
+  if (r.err && r.A == null) { el.innerHTML = '<h2>Kết quả</h2><div class="note bad">' + r.err + '</div>'; svg.innerHTML = ''; texts.lech = ''; return; }
+  const ang = r.ang, angT = String(ang).replace('.', ',') + '°';
+  const hasL = r.Lm != null, d = hasL ? r.diff : 0;
+  // hình vẽ đúng tỉ lệ: x dọc tuyến, y lệch (y lật dấu khi vẽ); tim ống, tâm co và đường kích thước vẽ đè lên ống
+  const D = s.od, ux = Math.cos(rad(ang)), uy = Math.sin(rad(ang));
+  const E1 = -r.E - d, E2 = r.run + r.E;                 // vị trí đầu ống 1 (có sẵn) và đầu ống 2
+  const lead = Math.max(3 * D, 0.35 * (r.run + 2 * r.A + D), -E1 + 1.5 * D);
+  const P1 = [0, 0], P2 = [r.run, r.H], xr = Math.max(r.run + lead, E2 + 1.5 * D);
+  const cutA = [P1[0] + r.A * ux, r.A * uy], cutB = [P2[0] - r.A * ux, r.H - r.A * uy];
+  const base = xr + lead, fs = 0.042 * Math.max(base, 1.6 * r.H);
+  const f = p => p[0].toFixed(1) + ' ' + (-p[1]).toFixed(1);
+  const pth = (a, col, w, op) => `<path d="M${a.map(f).join(' L')}" style="fill:none;stroke:${col};stroke-width:${w};stroke-linejoin:round${op ? ';opacity:' + op : ''}"/>`;
+  const thin = (a, b, dash, col) => `<path d="M${f(a)} L${f(b)}" vector-effect="non-scaling-stroke" style="fill:none;stroke:${col || 'var(--muted)'};stroke-width:1.2${dash ? ';stroke-dasharray:' + dash : ''}"/>`;
+  const tick = p => thin([p[0] - fs * .28, p[1] - fs * .28], [p[0] + fs * .28, p[1] + fs * .28], 0, 'var(--ink)');
+  const dim = (a, b) => thin(a, b, 0, 'var(--ink)') + tick(a) + tick(b);
+  const txt = (p, t, rot, o) => `<text x="${p[0].toFixed(1)}" y="${(-p[1]).toFixed(1)}" font-size="${fs * (o && o.s || 1)}" text-anchor="${o && o.a || 'middle'}" dominant-baseline="middle" font-weight="${o && o.b ? 700 : 500}"${rot ? ` transform="rotate(${rot} ${p[0].toFixed(1)} ${(-p[1]).toFixed(1)})"` : ''}${o && o.c ? ` style="fill:${o.c}"` : ''}>${t}</text>`;
+  let g = pth([[-lead, 0], P1, cutA], 'var(--steel)', D) + pth([cutB, P2, [xr, r.H]], 'var(--steel)', D) + (r.cut > 0 ? pth([cutA, cutB], 'var(--accent)', D * 0.9) : '');
+  // đoạn ống phải nối thêm, hoặc phần ống có sẵn phải cắt bỏ
+  if (hasL && d > 1) g += pth([[E1, 0], [-r.E, 0]], 'var(--accent)', D * 0.9, .55) + txt([(E1 - r.E) / 2, D / 2 + fs * .9], 'thêm ' + mm(r.piece), 0, { b: 1, c: 'var(--accent)' });
+  if (hasL && d < -1) g += `<rect x="${(-r.E).toFixed(1)}" y="${(-D / 2).toFixed(1)}" width="${(-d).toFixed(1)}" height="${D.toFixed(1)}" vector-effect="non-scaling-stroke" style="fill:var(--bad-bg);stroke:var(--bad-ink);stroke-width:1.5;stroke-dasharray:5 3;opacity:.9"/>`
+    + txt([E1 - (-d) / 2, -(D / 2 + fs * .9)], 'cắt bỏ ' + mm(-d), 0, { b: 1, c: 'var(--bad-ink)' });
+  // tim ống
+  g += `<path d="M${f([-lead, 0])} L${f(P1)} L${f(P2)} L${f([xr, r.H])}" vector-effect="non-scaling-stroke" style="fill:none;stroke:var(--ink);stroke-width:1.3;stroke-dasharray:14 4 3 4"/>`;
+  // lệch H: đường kích thước đứng bên phải, đường dóng từ 2 tim
+  const hx = xr + fs * 1.2;
+  g += thin(P1, [hx + fs * .4, 0], '3 3') + thin([xr, r.H], [hx + fs * .4, r.H], '3 3') + dim([hx, 0], [hx, r.H])
+    + txt([hx + fs * 1.1, r.H / 2], 'lệch H ' + mm(r.H), -90, { b: 1 });
+  // khoảng lùi dọc tuyến giữa 2 tâm co
+  const ry = -(D / 2 + fs * (hasL && d < -1 ? 2.4 : 1.3));
+  if (r.run > 1) g += thin(P1, [0, ry - fs * .4], '3 3') + thin(P2, [r.run, ry - fs * .4], '3 3') + dim([0, ry], [r.run, ry]) + txt([r.run / 2, ry - fs * .9], 'lùi ' + mm(r.run));
+  // khoảng L đo được giữa 2 đầu ống có sẵn
+  const ly = ry - fs * 2.3;
+  if (hasL) {
+    [[E1, 0], [E2, r.H]].forEach(p => g += thin([p[0], p[1] + D * .65], [p[0], p[1] - D * .65], 0, 'var(--ink)'));
+    g += thin([E1, -D * .65], [E1, ly - fs * .4], '3 3') + thin([E2, r.H - D * .65], [E2, ly - fs * .4], '3 3') + dim([E1, ly], [E2, ly])
+      + txt([(E1 + E2) / 2, ly - fs * .9], (r.Lm < 0 ? 'chồng ' : 'L đo ') + mm(Math.abs(r.Lm)));
+  }
+  // tâm co → tâm co, song song đường xiên, phía trên-trái
+  const nx = -uy, ny = ux, off = D / 2 + fs * .9, rot = -ang;
+  const T1 = [P1[0] + nx * off, P1[1] + ny * off], T2 = [P2[0] + nx * off, P2[1] + ny * off];
+  g += thin(P1, [T1[0] + nx * fs * .4, T1[1] + ny * fs * .4], '3 3') + thin(P2, [T2[0] + nx * fs * .4, T2[1] + ny * fs * .4], '3 3') + dim(T1, T2)
+    + txt([(T1[0] + T2[0]) / 2 + nx * fs * .8, (T1[1] + T2[1]) / 2 + ny * fs * .8], 'tâm–tâm ' + mm(r.travel), rot);
+  // chiều dài cắt, phía dưới-phải đoạn cam
+  if (r.cut > 0) { const m = [(cutA[0] + cutB[0]) / 2 - nx * (D / 2 + fs * .9), (cutA[1] + cutB[1]) / 2 - ny * (D / 2 + fs * .9)]; g += txt(m, 'cắt ' + mm(r.cut), rot, { b: 1, s: 1.2, c: 'var(--accent)' }); }
+  // tâm co, tên 2 ống
+  [P1, P2].forEach(p => g += `<circle cx="${p[0].toFixed(1)}" cy="${(-p[1]).toFixed(1)}" r="${(fs * .3).toFixed(1)}" style="fill:var(--surface);stroke:var(--ink);stroke-width:${(fs * .12).toFixed(1)}"/>`);
+  g += txt([-lead, -(D / 2 + fs * .9)], 'ống 1', 0, { a: 'start', c: 'var(--muted)' }) + txt([xr, r.H - D / 2 - fs * .9], 'ống 2', 0, { a: 'end', c: 'var(--muted)' });
+  const x0 = -lead, x1 = hx + fs * 2, y0 = -(Math.max(r.H + fs * 1.6, T2[1]) + D / 2 + fs * 1.8), y1 = -(hasL ? ly : ry) + fs * 1.6, pad = fs * .4;
+  svg.setAttribute('viewBox', `${x0 - pad} ${y0 - pad} ${x1 - x0 + 2 * pad} ${y1 - y0 + 2 * pad}`);
+  svg.innerHTML = g;
+
+  let html = '<h2>Kết quả</h2>';
+  if (r.err) html += '<div class="note bad">' + r.err + '</div>';
+  else {
+    html += `<div class="big"><div><span>Ống cắt giữa 2 co</span><b>${mm(r.cut)}<small>mm</small></b></div><div><span>Góc co${r.auto ? ' (tự tìm)' : ''}</span><b style="font-size:34px">${angT}</b></div>`;
+    if (hasL && d > 1) html += `<div><span>Nối thêm ống</span><b style="font-size:34px">${mm(r.piece)}<small>mm</small></b></div>`;
+    if (hasL && d < -1) html += `<div><span>Cắt bớt ống có sẵn</span><b style="font-size:34px;color:var(--bad-ink)">${mm(-d)}<small>mm</small></b></div>`;
+    html += '</div>';
+  }
+  const pf = projFit(ang === 45 ? 'e45' : 'e90', s.i);
+  html += '<table class="kv">'
+    + `<tr><td>Độ lệch thật</td><td>${mm(r.H)}</td></tr>`
+    + (Y ? `<tr><td>Xoay mặt phẳng 2 co so với phương ngang</td><td>${dg(r.roll)}</td></tr>` : '')
+    + `<tr><td>Tâm co → tâm co (đường xiên)</td><td>${mm(r.travel)}</td></tr>`
+    + `<tr><td>Khoảng lùi dọc tuyến giữa 2 tâm co</td><td>${mm(r.run)}</td></tr>`
+    + `<tr><td>Trừ 2 co (tâm → đầu ${mm(r.A)}${pf ? ', ' + esc(pf.it.brand || pf.it.name) : ''})</td><td>${sg(2 * r.A)}</td></tr>`
+    + `<tr><td>2 đầu ống: ${r.pe.txt}</td><td>${sg(2 * r.pe.v)}</td></tr>`
+    + `<tr><td>Từ đầu ống có sẵn tới tâm co</td><td>${mm(r.E)}</td></tr>`
+    + `<tr><td>Dọc tuyến cần có giữa 2 đầu ống</td><td>${mm(r.Lneed)}</td></tr>`
+    + (hasL ? `<tr><td>${r.Lm < 0 ? 'Hai ống đang chồng qua nhau' : 'Khoảng L đo được'}</td><td>${mm(Math.abs(r.Lm))}</td></tr>` : '') + '</table>';
+  if (!r.err && hasL) {
+    if (d > 1) html += `<div class="note info">Hai đầu ống hở dư ${mm(d)} mm. Nối thêm 1 đoạn ống ${mm(r.piece)} mm vào đầu ống 1 (hoặc ống 2), mối nối ${r.px.txt}, rồi lắp 2 co và đoạn ${mm(r.cut)} ở giữa.${av !== 'auto' && s.fam === 'weld' ? ' Không muốn thêm ống thì chọn góc "Tự tìm theo L".' : ''}</div>`;
+    else if (d < -1) html += `<div class="note">Không đủ chỗ: phải cắt bớt ${mm(-d)} mm ở đầu ống 1, hoặc mỗi ống ${mm(-d / 2)} mm. Hoặc chọn góc co lớn hơn để rút ngắn khoảng lùi.</div>`;
+    else html += '<div class="note info">Vừa khít: lắp co thẳng vào 2 đầu ống có sẵn, không phải thêm hay cắt ống.</div>';
+    if (d > 1 && r.piece < 100) html += '<div class="note">Đoạn ống nối thêm ngắn dưới 100 mm, khó hàn. Nên cắt lùi ống có sẵn thêm 100–150 mm rồi nối đoạn dài hơn, hoặc chọn góc co nhỏ hơn.</div>';
+  }
+  if (r.arcs) html += `<div class="note info">Co ${angT} cắt từ co 90° hàn (bán kính tâm ${mm(r.A / Math.tan(rad(ang) / 2))}): đo từ đầu co theo cung lưng ${mm(r.arcs.o)} mm, cung bụng ${mm(r.arcs.i)} mm, vạch vòng quanh rồi cắt. Tâm → đầu co sau cắt ${mm(r.A)} mm.</div>`;
+  if (!r.err && r.cut < 100) html += '<div class="note">Đoạn ống giữa 2 co dưới 100 mm. Có thể hàn 2 co sát nhau hoặc đổi góc.</div>';
+  el.innerHTML = html + (r.err ? '' : copyBtn('lech'));
+  texts.lech = r.err ? '' : `LỆCH TÂM DN${DN[s.i]} ${MAT[s.mat].name}\nLệch ${mm(r.H)} mm${Y ? ` (X ${mm(X)}, Y ${mm(Y)}, xoay ${dg(r.roll)})` : ''}, 2 co ${angT}\nTâm-tâm co: ${mm(r.travel)}, lùi dọc tuyến: ${mm(r.run)}\nĐầu ống có sẵn → tâm co: ${mm(r.E)}`
+    + (hasL ? `\n${r.Lm < 0 ? 'Chồng' : 'L đo'}: ${mm(Math.abs(r.Lm))}, cần ${mm(r.Lneed)}` + (d > 1 ? `\n=> NỐI THÊM ỐNG: ${mm(r.piece)} mm` : d < -1 ? `\n=> CẮT BỚT ỐNG CÓ SẴN: ${mm(-d)} mm` : '\n=> Vừa khít') : '')
+    + (r.arcs ? `\nCắt co 90 thành ${angT}: cung lưng ${mm(r.arcs.o)}, cung bụng ${mm(r.arcs.i)}` : '')
+    + `\n=> ỐNG CẮT GIỮA 2 CO: ${mm(r.cut)} mm`;
+}
+
+function renderRef() {
+  const s = S(), m = MAT[s.mat], f = k => { const v = fitLen(s, k); return v == null ? '—' : mm(v); };
+  $('tra-h').textContent = `Bảng tra DN${DN[s.i]} · ${m.name} · ${FAM[s.fam]}`;
+  let rows = [['Đường kính ngoài', s.od], ['Độ dày', s.wall], ['Đường kính trong', (s.od - 2 * s.wall).toFixed(1)]];
+  if (m.steel) rows.push(['Khối lượng (kg/m)', (0.02466 * s.wall * (s.od - s.wall)).toFixed(2)]);
+  rows.push(['Co 90°: tâm → đầu', f('e90')], ['Co 45°: tâm → đầu', f('e45')], ['Tê: tâm → đầu', f('tee')], ['Côn thu: dài', f('red')]);
+  if (s.fam === 'thr') rows.push(['Chiều sâu ăn ren', THREAD[s.i]]);
+  if (s.fam === 'glue' || s.fam === 'heat') rows.push(['Chiều sâu cắm ống', mm(sockDepth(s.mat, s.od))]);
+  Object.keys(VALVE).forEach(k => { const p = projFit(k, s.i); rows.push([VALVE[k].name, p ? p.v : VALVE[k].len[s.i] == null ? '—' : VALVE[k].len[s.i]]); });
+  lib.items.filter(it => it.cat === 'other').forEach(it => rows.push([(it.code ? it.code + ' ' : '') + (it.name || 'Khác'), projLen(it, s.i) == null ? '—' : projLen(it, s.i)]));
+  $('tra-body').innerHTML = '<table class="ref"><thead><tr><th>Hạng mục</th><th style="text-align:right">mm</th></tr></thead><tbody>'
+    + rows.map(r => `<tr><td>${esc(r[0])}</td><td>${String(r[1]).replace('.', ',')}</td></tr>`).join('') + '</tbody></table>'
+    + `<p class="lead" style="margin-top:8px">${lib.items.length ? 'Có vật tư dự án: số của dự án được dùng trước. ' : ''}Số mặc định: ${s.fam === 'glue' || s.fam === 'heat' ? 'ước tính theo đường kính' : FIT[s.fam].src}, van DIN/EN.</p>`;
+}
+
+// ---------- tuyến nhiều đoạn ----------
+const DIRS = { R: [1, 0, '→ Phải'], L: [-1, 0, '← Trái'], U: [0, 1, '↑ Lên'], D: [0, -1, '↓ Xuống'],
+  UR: [Math.SQRT1_2, Math.SQRT1_2, '↗ Chéo lên phải'], UL: [-Math.SQRT1_2, Math.SQRT1_2, '↖ Chéo lên trái'],
+  DR: [Math.SQRT1_2, -Math.SQRT1_2, '↘ Chéo xuống phải'], DL: [-Math.SQRT1_2, -Math.SQRT1_2, '↙ Chéo xuống trái'],
+  IN: [0, 0, '⊗ Vào trong', 1], OUT: [0, 0, '⊙ Ra ngoài', -1] };   // phần tử thứ 4: trục z, chiều nhìn vào bản vẽ
+// chiếu 3D → mặt giấy: mặt đứng bỏ z; isometric: x chạy xuống-phải, z (vào trong) chạy lên-phải, y thẳng đứng
+function proj(v, iso) { const z = v[3] || 0; return iso ? [(v[0] + z) * Math.cos(Math.PI / 6), v[1] + (z - v[0]) * .5] : [v[0], v[1]]; }
+function routeIso(rt) { return rt.view === 'iso' || (rt.view !== 'flat' && rt.legs.some(lg => DIRS[lg.dir][3])); }
+const RT_MIDS = ['kpipe', 'bfly', 'chkw', 'chks', 'gate', 'ystr', 'flex', 'teeRun', 'red', 'cust'];
+function defRoute() {
+  return { A: { t: 'cTee', custom: null }, B: { t: 'flg' }, legs: [
+    { dir: 'L', len: 1200, items: [{ t: 'pipe' }] },
+    { dir: 'D', len: 2400, items: [{ t: 'pipe' }, { t: 'bfly', custom: null }, { t: 'ystr', custom: null }, { t: 'flex', custom: null }, { t: 'kpipe', custom: 200 }] },
+    { dir: 'IN', len: 900, items: [{ t: 'pipe' }] }] };
+}
+// góc đổi hướng giữa 2 đoạn liền nhau
+function turnAng(d1, d2) { const a = DIRS[d1], b = DIRS[d2]; return Math.round(deg(Math.acos(Math.max(-1, Math.min(1, a[0] * b[0] + a[1] * b[1] + (a[3] || 0) * (b[3] || 0)))))); }
+function legEls(rt, k) {
+  const n = rt.legs.length, node = j => ({ t: turnAng(rt.legs[j].dir, rt.legs[j + 1].dir) === 45 ? 'cE45' : 'cE90' });
+  return [k === 0 ? rt.A : node(k - 1), ...rt.legs[k].items, k === n - 1 ? rt.B : node(k)];
+}
+function calcRoute(S, rt) {
+  const out = [], errs = [];
+  for (let j = 0; j < rt.legs.length - 1; j++) {
+    const a = turnAng(rt.legs[j].dir, rt.legs[j + 1].dir);
+    if (a === 0) errs.push(`Đoạn ${j + 1} và ${j + 2} cùng hướng: gộp thành 1 đoạn.`);
+    else if (a !== 45 && a !== 90) errs.push(`Đoạn ${j + 1} sang ${j + 2} đổi hướng ${a}°: không có co góc này. Dùng 45° hoặc 90°.`);
+  }
+  rt.legs.forEach((lg, k) => { const els = legEls(rt, k); out.push({ els, r: calcRun(S, els, lg.len) }); });
+  return { legs: out, errs };
+}
+function routeRow(el, k, idx, n) {
+  const s = S(), L = elLen(el, s);
+  const mv = `<button class="ib" data-rup="${k}:${idx}" aria-label="Lên"${idx === 0 ? ' disabled' : ''}>↑</button><button class="ib" data-rdown="${k}:${idx}" aria-label="Xuống"${idx === n - 1 ? ' disabled' : ''}>↓</button>`;
+  if (el.t === 'pipe') return `<li class="pipe"><span class="ic">✂</span><div class="nm">ỐNG CẦN CẮT<small>tính theo số đo</small></div><div class="ctl">${mv}</div></li>`;
+  const sub = el.t === 'kpipe' ? 'nhập chiều dài ống' : el.t === 'teeRun' ? '2 × tâm → đầu' : el.t === 'red' ? 'chiều dài côn' : 'mặt bích → mặt bích';
+  return `<li><span class="ic">${idx + 1}</span><div class="nm">${esc(elName(el))}<small>${sub}</small></div>
+    <div class="ctl"><input data-rlen="${k}:${idx}" inputmode="decimal" value="${L == null ? '' : mm(L)}" placeholder="?" class="${el.custom != null ? 'custom' : ''}" aria-label="Chiều dài">${mv}<button class="ib" data-rdel="${k}:${idx}" aria-label="Xoá">✕</button></div></li>`;
+}
+function anchorSel(which, el) {
+  const opts = ['cTee', 'flg', 'exist'].map(t => `<option value="${t}"${t === el.t ? ' selected' : ''}>${NAME[t]}</option>`).join('');
+  const L = elLen(el, S()), hasLen = el.t === 'cTee';
+  return `<ol class="run"><li class="anchor"><span class="ic">${which}</span><div class="nm"><select data-ranchor="${which}" aria-label="Mốc ${which}">${opts}</select>${hasLen ? '<small>tâm → đầu tê</small>' : ''}</div>
+    <div class="ctl">${hasLen ? `<input data-ralen="${which}" inputmode="decimal" value="${L == null ? '' : mm(L)}" class="${el.custom != null ? 'custom' : ''}" aria-label="Chiều dài">` : ''}</div></li></ol>`;
+}
+function renderRouteForm() {
+  const rt = st.route, s = S();
+  const dirOpts = d => Object.keys(DIRS).map(k => `<option value="${k}"${k === d ? ' selected' : ''}>${DIRS[k][2]}</option>`).join('');
+  const addOpts = '<option value="">+ Thêm van / ống vào đoạn này</option>' + (lib.items.length ? '<optgroup label="Vật tư dự án">' + lib.items.filter(it => !['e90', 'e45'].includes(it.cat)).map(it => `<option value="pi:${esc(it.id)}">${it.code ? esc(it.code) + ' · ' : ''}${esc(it.name)}</option>`).join('') + '</optgroup>' : '')
+    + '<optgroup label="Mặc định">' + RT_MIDS.map(t => `<option value="${t}">${NAME[t]}</option>`).join('') + '</optgroup>';
+  let h = anchorSel('A', rt.A);
+  rt.legs.forEach((lg, k) => {
+    if (k > 0) { const a = turnAng(rt.legs[k - 1].dir, lg.dir), A = a === 45 || a === 90 ? fitLen(s, a === 45 ? 'e45' : 'e90') : null;
+      h += `<div class="node">${a === 45 || a === 90 ? `Co ${a}° · tâm → đầu ${A == null ? '?' : mm(A)}` : `<span style="color:var(--bad-ink)">Đổi hướng ${a}°: không có co</span>`}</div>`; }
+    h += `<div class="leg"><div class="leghead"><b>Đoạn ${k + 1}</b>${rt.legs.length > 1 ? `<button class="ib" type="button" data-rmleg="${k}">Xoá đoạn</button>` : ''}</div>
+      <div class="grid"><label class="f"><span>Hướng</span><div class="inp sel"><select data-rdir="${k}">${dirOpts(lg.dir)}</select></div></label>
+      <label class="f"><span>Tâm–tâm${k === 0 ? ' (từ mốc A)' : ''}${k === rt.legs.length - 1 ? ' (tới mốc B)' : ''}</span><div class="inp"><input data-rleg="${k}" inputmode="decimal" value="${lg.len}"><i>mm</i></div></label></div>
+      <ol class="run">${lg.items.map((el, i) => routeRow(el, k, i, lg.items.length)).join('')}</ol>
+      <div class="addrow"><select data-radd="${k}" aria-label="Thêm vào đoạn ${k + 1}">${addOpts}</select></div></div>`;
+  });
+  h += anchorSel('B', rt.B);
+  $('route').innerHTML = h;
+}
+function renderRoute() {
+  const s = S(), rt = st.route, R = calcRoute(s, rt), el = $('r-nhieu');
+  drawRoute(s, rt, R);
+  if (v3.on) build3D(s, rt, R);
+  let html = '<h2>Các ống cần cắt</h2>';
+  R.errs.forEach(e => html += `<div class="note bad">${e}</div>`);
+  const pieces = [];
+  R.legs.forEach((L, k) => { if (!L.r.err) pieces.push({ k, v: L.r.cut }); });
+  const ok = !R.errs.length && pieces.length === rt.legs.length;
+  const known = [];
+  rt.legs.forEach((lg, k) => lg.items.forEach(x => { if (x.t === 'kpipe' && x.custom > 0) known.push({ k, v: x.custom }); }));
+  known.forEach(p => pieces.push(p));
+  if (ok) {
+    const tot = pieces.reduce((a, p) => a + p.v, 0), m = MAT[s.mat];
+    html += `<div class="big"><div><span>Số ống cắt</span><b>${pieces.length}</b></div><div><span>Tổng chiều dài</span><b>${mm(tot)}<small>mm</small></b></div>${m.steel ? `<div><span>Khối lượng</span><b style="font-size:34px">${(tot / 1000 * 0.02466 * s.wall * (s.od - s.wall)).toFixed(1).replace('.', ',')}<small>kg</small></b></div>` : ''}</div>`;
+  }
+  html += '<table class="kv">' + R.legs.map((L, k) => `<tr><td>Ống ${k + 1} · đoạn ${k + 1} (${DIRS[rt.legs[k].dir][2].split(' ')[0]} tâm–tâm ${mm(rt.legs[k].len)})</td><td>${L.r.err ? '<span style="color:var(--bad-ink)">lỗi</span>' : mm(L.r.cut)}</td></tr>`
+    + known.filter(p => p.k === k).map(p => `<tr><td style="padding-left:14px;color:var(--muted)">+ ống đã biết trong đoạn ${k + 1}</td><td>${mm(p.v)}</td></tr>`).join('')).join('') + '</table>';
+  R.legs.forEach((L, k) => {
+    if (L.r.err && !L.r.lines) { html += `<div class="note bad">Đoạn ${k + 1}: ${esc(L.r.err)}</div>`; return; }
+    if (L.r.err) html += `<div class="note bad">Đoạn ${k + 1}: ${esc(L.r.err)}</div>`;
+    html += `<details class="more"><summary>Cách tính đoạn ${k + 1}</summary><table class="kv"><tr><td>Tâm–tâm đo</td><td>${mm(rt.legs[k].len)}</td></tr>`
+      + L.r.lines.map(l => `<tr><td>${esc(lineLabel(l))}</td><td>${sg(l.v)}</td></tr>`).join('') + `<tr class="sum"><td>Ống cắt</td><td>${L.r.err ? '—' : mm(L.r.cut)}</td></tr></table></details>`;
+    L.r.warns.forEach(w => html += `<div class="note">Đoạn ${k + 1}: ${w}</div>`);
+    if (!L.r.err && L.r.cut < 100) html += `<div class="note">Ống ${k + 1} ngắn dưới 100 mm, khó lắp: cân nhắc dời van sang đoạn khác.</div>`;
+  });
+  el.innerHTML = html + (ok ? copyBtn('nhieu') : '');
+  texts.nhieu = ok ? `TUYẾN NHIỀU ĐOẠN DN${DN[s.i]} ${MAT[s.mat].name}, nối ${FAM[s.fam]}\nA: ${NAME[rt.A.t]} → B: ${NAME[rt.B.t]}\n`
+    + rt.legs.map((lg, k) => `Đoạn ${k + 1} ${DIRS[lg.dir][2]} tâm–tâm ${mm(lg.len)}: ỐNG CẮT ${mm(R.legs[k].r.cut)} mm` + (lg.items.length > 1 ? ' (' + lg.items.filter(x => x.t !== 'pipe').map(elName).join(', ') + ')' : '')).join('\n')
+    + `\nTổng ${mm(pieces.reduce((a, p) => a + p.v, 0))} mm` : '';
+}
+// vẽ tuyến đúng tỉ lệ: nút tâm co, ống cắt màu cam, van/khớp đặt đúng vị trí trên đoạn
+function drawRoute(s, rt, R) {
+  const D = s.od, pts = [[0, 0]], iso = routeIso(rt), pd = k => proj(DIRS[k], iso);
+  rt.legs.forEach(lg => { const d = pd(lg.dir), p = pts[pts.length - 1]; pts.push([p[0] + d[0] * lg.len, p[1] + d[1] * lg.len]); });
+  $('fig-rt-cap').textContent = iso ? 'Hình isometric, đúng tỉ lệ: ↑ lên, ↘ sang phải, ↗ vào trong (ngược lại là ra ngoài). Mỗi đoạn đo tâm–tâm giữa 2 giao điểm tim ống; đoạn đầu đo từ mốc A, đoạn cuối đo tới mốc B.'
+    : 'Vẽ đúng tỉ lệ theo hướng đã chọn (mặt đứng). Mỗi đoạn đo tâm–tâm giữa 2 giao điểm tim ống; đoạn đầu đo từ mốc A, đoạn cuối đo tới mốc B.';
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+  pts.forEach(p => { x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); });
+  const span = Math.max(x1 - x0, y1 - y0, 6 * D), fs = 0.04 * span;
+  const f = p => p[0].toFixed(1) + ' ' + (-p[1]).toFixed(1);
+  const seg = (a, b, col, w, op) => `<path d="M${f(a)} L${f(b)}" style="fill:none;stroke:${col};stroke-width:${w}${op ? ';opacity:' + op : ''}"/>`;
+  const thin = (a, b, dash, col) => `<path d="M${f(a)} L${f(b)}" vector-effect="non-scaling-stroke" style="fill:none;stroke:${col || 'var(--muted)'};stroke-width:1.2${dash ? ';stroke-dasharray:' + dash : ''}"/>`;
+  const tick = p => thin([p[0] - fs * .25, p[1] - fs * .25], [p[0] + fs * .25, p[1] + fs * .25], 0, 'var(--ink)');
+  const txt = (p, t, rot, o) => `<text x="${p[0].toFixed(1)}" y="${(-p[1]).toFixed(1)}" font-size="${(fs * (o && o.s || 1)).toFixed(1)}" text-anchor="${o && o.a || 'middle'}" dominant-baseline="middle" font-weight="${o && o.b ? 700 : 500}"${rot ? ` transform="rotate(${rot.toFixed(1)} ${p[0].toFixed(1)} ${(-p[1]).toFixed(1)})"` : ''}${o && o.c ? ` style="fill:${o.c}"` : ''}>${t}</text>`;
+  // nền: ống thép theo tim, góc bo ở co
+  const hl = (d, col, w) => `<path d="${d}" transform="translate(${(-D * .14).toFixed(1)} ${(-D * .14).toFixed(1)})" style="fill:none;stroke:${col};stroke-width:${w};stroke-linejoin:round;stroke-linecap:round;opacity:.5"/>`;
+  const base = 'M' + pts.map(f).join(' L');
+  let g = `<path d="${base}" style="fill:none;stroke:var(--p-lo);stroke-width:${D};stroke-linejoin:round"/><path d="${base}" style="fill:none;stroke:var(--steel);stroke-width:${D * .82};stroke-linejoin:round"/>` + hl(base, 'var(--p-hi)', D * .2);
+  // mốc A, B
+  const n2 = v => { const l = Math.hypot(v[0], v[1]) || 1; return [v[0] / l, v[1] / l]; };
+  const d0 = n2(pd(rt.legs[0].dir)), dn = n2(pd(rt.legs[rt.legs.length - 1].dir)), pE = pts[pts.length - 1];
+  // hình phụ kiện thật (vẽ trong khung 160×110, tim ống ở y=55, ống bán kính 14) đặt theo hướng đoạn ống
+  const sD = D / 28;
+  const svgAng = u => -deg(Math.atan2(u[1], u[0]));
+  const pic = (cat, c, u, sx, ox, x1, x2, mirror) => {
+    let a = svgAng(u), fx = 1;
+    if (a > 90.5 || a < -90.5) { a += a > 0 ? -180 : 180; fx = -1; }   // giữ tay gạt, vô lăng hướng lên trên
+    const id = 'cp' + (++g3);
+    return `<g transform="translate(${c[0].toFixed(1)} ${(-c[1]).toFixed(1)}) rotate(${a.toFixed(1)}) scale(${(fx * sx).toFixed(4)} ${sD.toFixed(4)}) translate(${-ox} -55)">`
+      + `<clipPath id="${id}"><rect x="${x1}" y="-12" width="${x2 - x1}" height="134"/></clipPath><g clip-path="url(#${id})">${draw3D(cat, mirror, true)}</g></g>`;
+  };
+  if (rt.A.t === 'cTee') g += pic('aTee', [0, 0], d0, sD, 62, 30, 160);
+  if (rt.A.t === 'flg') g += pic('aFlg', [0, 0], d0, sD, 62, 16, 71);
+  if (rt.B.t === 'flg') g += pic('aFlg', pE, [-dn[0], -dn[1]], sD, 62, 16, 71);
+  rt.legs.forEach((lg, k) => {
+    const d = pd(lg.dir), P = pts[k], L = R.legs[k], els = L.els, u = n2(d);
+    const at = t => [P[0] + d[0] * t, P[1] + d[1] * t], nx = -u[1], ny = u[0];
+    let rot = -deg(Math.atan2(d[1], d[0])); if (rot > 90) rot -= 180; if (rot < -90) rot += 180;
+    let pos = 0;
+    const tags = [];
+    els.forEach((el, i) => {
+      const len = el.t === 'pipe' ? (L.r.err ? 0 : L.r.cut) : (elLen(el, s) || 0);
+      const a = pos, b = pos + len;
+      if (el.t === 'pipe' && len > 0) {
+        g += seg(at(a), at(b), 'var(--o-lo)', D * .95) + seg(at(a), at(b), 'var(--accent)', D * .78) + hl(`M${f(at(a))} L${f(at(b))}`, 'var(--o-hi)', D * .2);
+        const m = at((a + b) / 2), side = D / 2 + fs * .9;
+        g += txt([m[0] - nx * side, m[1] - ny * side], 'cắt ' + mm(len), rot, { b: 1, c: 'var(--accent)' });
+      } else if (el.t === 'kpipe' && len > 0) g += seg(at(a), at(b), 'var(--accent)', D * .9, .45);
+      else if (i > 0 && i < els.length - 1 && len > 0) {
+        let cat = PIC[el.t] || el.t;
+        if (el.t === 'pi') { const it0 = projItem(el.id); cat = it0 ? it0.cat : 'other'; }
+        const ex = EXT3D[cat] || EXT3D.other;
+        g += pic(cat, at((a + b) / 2), u, len / (ex[1] - ex[0]), (ex[0] + ex[1]) / 2, ex[0], ex[1]);
+        const it = el.t === 'pi' ? projItem(el.id) : null, lab = it ? (it.code || (CATS[it.cat] || '').split(' ')[0]) : SHORT[el.t];
+        tags.push({ p: (a + b) / 2, t: lab });
+      }
+      pos = b;
+      if (i < els.length - 1) pos += joint(el, els[i + 1], s).v;
+    });
+    // tên van/khớp: chữ nằm ngang, đẩy giãn ra để không đè nhau
+    const vert = Math.abs(u[0]) < .01, diag = Math.abs(u[0]) > .01 && Math.abs(u[1]) > .01, side = D * .78 + fs * .8;
+    let last = -Infinity, lastW = 0;
+    tags.forEach(tg => {
+      const w = tg.t.length * fs * .8 * .58, gap = vert ? fs * 1.05 : (w + lastW) / 2 + fs * .4;
+      const p = diag ? tg.p : Math.max(tg.p, last + gap); last = p; lastW = w;
+      const m = at(p), q = [m[0] - nx * side, m[1] - ny * side];
+      g += txt(q, esc(tg.t), diag ? rot : 0, { s: .8, c: 'var(--muted)', a: vert ? (-nx < 0 ? 'end' : 'start') : 'middle' });
+    });
+    // kích thước tâm–tâm của đoạn, phía bên kia ống
+    const off = D / 2 + fs * 1.3, A1 = [P[0] + nx * off, P[1] + ny * off], B1 = [pts[k + 1][0] + nx * off, pts[k + 1][1] + ny * off];
+    g += thin(P, [A1[0] + nx * fs * .3, A1[1] + ny * fs * .3], '3 3') + thin(pts[k + 1], [B1[0] + nx * fs * .3, B1[1] + ny * fs * .3], '3 3')
+      + thin(A1, B1, 0, 'var(--ink)') + tick(A1) + tick(B1)
+      + txt([(A1[0] + B1[0]) / 2 + nx * fs * .75, (A1[1] + B1[1]) / 2 + ny * fs * .75], `${k + 1}: ${mm(lg.len)}`, rot);
+  });
+  g += `<path d="M${pts.map(f).join(' L')}" vector-effect="non-scaling-stroke" style="fill:none;stroke:var(--ink);stroke-width:1.2;stroke-dasharray:14 4 3 4"/>`;
+  pts.slice(1, -1).forEach(p => g += `<circle cx="${p[0].toFixed(1)}" cy="${(-p[1]).toFixed(1)}" r="${(fs * .28).toFixed(1)}" style="fill:var(--surface);stroke:var(--ink);stroke-width:${(fs * .1).toFixed(1)}"/>`);
+  g += txt([pts[0][0] - d0[0] * fs * 1.6 + d0[1] * fs * 1.6, pts[0][1] - d0[1] * fs * 1.6 - d0[0] * fs * 1.6], 'A', 0, { b: 1, s: 1.2 })
+    + txt([pE[0] + dn[0] * fs * 2 + dn[1] * fs * 1.4, pE[1] + dn[1] * fs * 2 - dn[0] * fs * 1.4], 'B', 0, { b: 1, s: 1.2 });
+  const pad = D * 1.3 + fs * 3.2;
+  const svg = $('fig-rt');
+  svg.setAttribute('viewBox', `${(x0 - pad).toFixed(0)} ${(-y1 - pad).toFixed(0)} ${(x1 - x0 + 2 * pad).toFixed(0)} ${(y1 - y0 + 2 * pad).toFixed(0)}`);
+  svg.innerHTML = g;
+}
+
+// ---------- khung 3D xoay được (Three.js, tải khi cần) ----------
+const v3 = { on: false, ready: null };
+function loadThree() {
+  if (window.THREE) return Promise.resolve(window.THREE);
+  if (!v3.ready) v3.ready = new Promise((ok, bad) => {
+    const sc = document.createElement('script');
+    sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+    sc.onload = () => ok(window.THREE); sc.onerror = () => { v3.ready = null; bad(); };
+    document.head.appendChild(sc);
+  });
+  return v3.ready;
+}
+function init3D(T) {
+  const box = $('rt3d');
+  const r = new T.WebGLRenderer({ antialias: true });
+  r.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+  box.appendChild(r.domElement);
+  const scene = new T.Scene();
+  scene.add(new T.HemisphereLight(0xffffff, 0x445566, .85));
+  const sun = new T.DirectionalLight(0xffffff, .75); sun.position.set(1, 2, 1.5); scene.add(sun);
+  const back = new T.DirectionalLight(0xffffff, .3); back.position.set(-1.5, .5, -1); scene.add(back);
+  const cam = new T.PerspectiveCamera(40, 1, 10, 1e6);
+  Object.assign(v3, { T, r, scene, cam, box, group: null, target: new T.Vector3(), theta: .75, phi: 1.05, radius: 5000 });
+  const M = (c, m, ro) => new T.MeshStandardMaterial({ color: c, metalness: m, roughness: ro });
+  v3.mat = { steel: M(0xb3bec7, .65, .32), cut: M(0xff7a3d, .15, .5), kp: M(0xffb48a, .1, .6), valve: M(0x2f5d9a, .35, .42),
+    rubber: M(0x1e1e1e, 0, .85), lever: M(0xd9561a, .2, .5), pump: M(0x2f7a64, .3, .5), dark: M(0x5f6c77, .6, .4) };
+  // xoay, phóng to, di chuyển bằng ngón tay / chuột
+  const pts = new Map(); let last = null;
+  const el = r.domElement;
+  el.addEventListener('contextmenu', e => e.preventDefault());
+  el.addEventListener('pointerdown', e => { el.setPointerCapture(e.pointerId); pts.set(e.pointerId, { x: e.clientX, y: e.clientY, b: e.button }); last = null; });
+  const end = e => { pts.delete(e.pointerId); last = null; };
+  el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+  el.addEventListener('pointermove', e => {
+    if (!pts.has(e.pointerId)) return;
+    const p = pts.get(e.pointerId), dx = e.clientX - p.x, dy = e.clientY - p.y;
+    p.x = e.clientX; p.y = e.clientY;
+    if (pts.size === 1) {
+      if (p.b === 2 || e.shiftKey) pan3D(dx, dy);
+      else { v3.theta -= dx * .008; v3.phi = Math.min(Math.PI - .05, Math.max(.05, v3.phi - dy * .008)); }
+    } else if (pts.size === 2) {
+      const [a, b] = [...pts.values()], d = Math.hypot(a.x - b.x, a.y - b.y), m = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+      if (last) { v3.radius *= last.d / Math.max(d, 1); pan3D(m.x - last.m.x, m.y - last.m.y); }
+      last = { d, m };
+    }
+    place3D();
+  });
+  el.addEventListener('wheel', e => { e.preventDefault(); v3.radius *= Math.exp(e.deltaY * .0012); place3D(); }, { passive: false });
+  window.addEventListener('resize', () => { if (v3.on) size3D(); });
+}
+function pan3D(dx, dy) {
+  const T = v3.T, c = v3.cam, k = v3.radius * .0018;
+  const right = new T.Vector3().setFromMatrixColumn(c.matrix, 0), up = new T.Vector3().setFromMatrixColumn(c.matrix, 1);
+  v3.target.addScaledVector(right, -dx * k).addScaledVector(up, dy * k);
+}
+function size3D() { const w = v3.box.clientWidth, h = v3.box.clientHeight; v3.r.setSize(w, h, false); v3.cam.aspect = w / Math.max(h, 1); v3.cam.updateProjectionMatrix(); place3D(); }
+function place3D() {
+  const { cam, target: t, radius: R, theta: th, phi: ph } = v3;
+  cam.position.set(t.x + R * Math.sin(ph) * Math.sin(th), t.y + R * Math.cos(ph), t.z + R * Math.sin(ph) * Math.cos(th));
+  cam.lookAt(t); cam.updateMatrixWorld();
+  v3.r.render(v3.scene, cam);
+}
+function label3D(text, color, h) {
+  const T = v3.T, c = document.createElement('canvas'), x = c.getContext('2d'), fpx = 56;
+  x.font = `700 ${fpx}px "JetBrains Mono", Consolas, monospace`;
+  const w = Math.ceil(x.measureText(text).width) + 28; c.width = w; c.height = fpx + 24;
+  x.font = `700 ${fpx}px "JetBrains Mono", Consolas, monospace`;
+  x.fillStyle = 'rgba(20,26,32,.78)'; x.beginPath(); x.roundRect ? x.roundRect(0, 0, w, c.height, 14) : x.rect(0, 0, w, c.height); x.fill();
+  x.fillStyle = color; x.textBaseline = 'middle'; x.fillText(text, 14, c.height / 2 + 2);
+  const tex = new T.CanvasTexture(c); tex.anisotropy = 4;
+  const sp = new T.Sprite(new T.SpriteMaterial({ map: tex, depthTest: false, transparent: true }));
+  sp.scale.set(h * w / c.height, h, 1); sp.renderOrder = 10;
+  return sp;
+}
+function build3D(s, rt, R) {
+  const T = v3.T; if (!T || !v3.scene) return;
+  if (v3.group) { v3.scene.remove(v3.group); v3.group.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material && o.material.map) { o.material.map.dispose(); o.material.dispose(); } }); }
+  const G = new T.Group(); v3.group = G; v3.scene.add(G);
+  const D = s.od, Y = new T.Vector3(0, 1, 0), mat = v3.mat;
+  const V = k => { const d = DIRS[k]; return new T.Vector3(d[0], d[1], -(d[3] || 0)).normalize(); };   // vào trong = -z (xa người nhìn)
+  const add = m => { G.add(m); return m; };
+  const cyl = (a, b, r1, m, r2) => {
+    const v = new T.Vector3().subVectors(b, a), L = v.length(); if (L < .1) return null;
+    const ms = add(new T.Mesh(new T.CylinderGeometry(r2 == null ? r1 : r2, r1, L, 28), m));
+    ms.position.copy(a).addScaledVector(v, .5); ms.quaternion.setFromUnitVectors(Y, v.normalize()); return ms;
+  };
+  const upOf = u => { const w = Math.abs(u.y) > .9 ? new T.Vector3(0, 0, 1) : Y.clone(); return w.addScaledVector(u, -w.dot(u)).normalize(); };
+  const flg = (c, u, t) => { cyl(c.clone().addScaledVector(u, -t / 2), c.clone().addScaledVector(u, t / 2), D * .9, mat.steel); };
+  const comp = (cat, a, b, u) => {
+    const L = a.distanceTo(b), c = a.clone().lerp(b, .5), up = upOf(u), t = Math.min(16, L * .18);
+    const fa = a.clone().addScaledVector(u, t / 2), fb = b.clone().addScaledVector(u, -t / 2);
+    const body = (r, m) => cyl(a.clone().addScaledVector(u, t), b.clone().addScaledVector(u, -t), r, m || mat.valve);
+    const flanged = cat !== 'tee' && cat !== 'red';
+    if (flanged) { flg(fa, u, t); flg(fb, u, t); }
+    const at = (p, k) => c.clone().addScaledVector(p, k);
+    if (cat === 'bfly' || cat === 'chkw') {
+      body(D * .74);
+      if (cat === 'bfly') {
+        cyl(c, at(up, D * .95), D * .07, mat.dark);
+        const lv = add(new T.Mesh(new T.BoxGeometry(D * 1.7, D * .12, D * .2), mat.lever));
+        const z = new T.Vector3().crossVectors(u, up); lv.quaternion.setFromRotationMatrix(new T.Matrix4().makeBasis(u, up, z));
+        lv.position.copy(at(up, D)).addScaledVector(u, D * .6);
+      } else { const ar = add(new T.Mesh(new T.ConeGeometry(D * .16, D * .4, 18), mat.lever)); ar.position.copy(at(up, D * .95)); ar.quaternion.setFromUnitVectors(Y, u); }
+    } else if (cat === 'gate') {
+      body(D * .66); cyl(c, at(up, D * 1.1), D * .36, mat.valve); cyl(at(up, D * 1.1), at(up, D * 1.55), D * .06, mat.dark);
+      const hw = add(new T.Mesh(new T.TorusGeometry(D * .55, D * .05, 10, 40), mat.lever)); hw.position.copy(at(up, D * 1.55)); hw.quaternion.setFromUnitVectors(new T.Vector3(0, 0, 1), up);
+    } else if (cat === 'chks') {
+      body(D * .64); cyl(c, at(up, D * .62), D * .5, mat.valve);
+      const ar = add(new T.Mesh(new T.ConeGeometry(D * .16, D * .4, 18), mat.lever)); ar.position.copy(at(up, D * .95)); ar.quaternion.setFromUnitVectors(Y, u);
+    } else if (cat === 'ystr') {
+      body(D * .6);
+      const w = new T.Vector3().copy(u).multiplyScalar(.6).addScaledVector(up, -.8).normalize();
+      cyl(c, at(w, D * 1.5), D * .42, mat.valve); flg(at(w, D * 1.5), w, 14);
+    } else if (cat === 'flex') {
+      const sp = add(new T.Mesh(new T.SphereGeometry(1, 32, 20), mat.rubber));
+      sp.position.copy(c); sp.quaternion.setFromUnitVectors(Y, u); sp.scale.set(D * .82, Math.max(L / 2 - t, D * .2), D * .82);
+    } else if (cat === 'tee') {
+      cyl(a, b, D / 2, mat.steel); cyl(c, at(up, -D * 1.3), D / 2, mat.steel);
+    } else if (cat === 'red') {
+      cyl(a, b, D / 2, mat.steel, D * .34);
+    } else {
+      body(D * .55, mat.steel); cyl(c, at(up, D * .9), D * .06, mat.dark);
+      const g = add(new T.Mesh(new T.CylinderGeometry(D * .36, D * .36, D * .14, 28), mat.steel)); g.position.copy(at(up, D * 1.1)); g.quaternion.setFromUnitVectors(Y, new T.Vector3().crossVectors(u, up).normalize());
+    }
+  };
+  // các nút tâm co
+  const P = [new T.Vector3()];
+  rt.legs.forEach(lg => P.push(P[P.length - 1].clone().addScaledVector(V(lg.dir), lg.len)));
+  const n = rt.legs.length, fs = Math.max(D * 1.1, 0);
+  const trimAt = j => { if (j <= 0 || j >= n) return 0; const a = turnAng(rt.legs[j - 1].dir, rt.legs[j].dir); return fitLen(s, a === 45 ? 'e45' : 'e90') || D; };
+  // co uốn tại các nút
+  for (let j = 1; j < n; j++) {
+    const A = trimAt(j), u1 = V(rt.legs[j - 1].dir), u2 = V(rt.legs[j].dir);
+    const curve = new T.QuadraticBezierCurve3(P[j].clone().addScaledVector(u1, -A), P[j].clone(), P[j].clone().addScaledVector(u2, A));
+    add(new T.Mesh(new T.TubeGeometry(curve, 24, D / 2, 24, false), mat.steel));
+  }
+  // từng đoạn: ống nền, rồi ống cắt, van, khớp đúng vị trí
+  rt.legs.forEach((lg, k) => {
+    const u = V(lg.dir), L = R.legs[k], els = L.els, A0 = trimAt(k), A1 = trimAt(k + 1);
+    cyl(P[k].clone().addScaledVector(u, A0), P[k + 1].clone().addScaledVector(u, -A1), D / 2 * .985, mat.steel);
+    let pos = 0;
+    els.forEach((el, i) => {
+      const len = el.t === 'pipe' ? (L.r.err ? 0 : L.r.cut) : (elLen(el, s) || 0);
+      const a = P[k].clone().addScaledVector(u, pos), b = P[k].clone().addScaledVector(u, pos + len);
+      if (el.t === 'pipe' && len > 0) {
+        cyl(a, b, D / 2 * 1.01, mat.cut);
+        const lb = add(label3D('cắt ' + mm(len), '#ff9a66', fs)); lb.position.copy(a.clone().lerp(b, .5)).addScaledVector(upOf(u), D * 1.25);
+      } else if (el.t === 'kpipe' && len > 0) cyl(a, b, D / 2 * 1.01, mat.kp);
+      else if (i > 0 && i < els.length - 1 && len > 0) {
+        let cat = PIC[el.t] || el.t;
+        if (el.t === 'pi') { const it = projItem(el.id); cat = it ? it.cat : 'other'; }
+        comp(cat, a, b, u);
+      }
+      pos += len;
+      if (i < els.length - 1) pos += joint(el, els[i + 1], s).v;
+    });
+    const lb = add(label3D(`${k + 1}: ${mm(lg.len)}`, '#c9d3db', fs * .8)); lb.position.copy(P[k].clone().lerp(P[k + 1], .5)).addScaledVector(upOf(u), -D * 1.4);
+  });
+  // mốc A và B
+  const u0 = V(rt.legs[0].dir), un = V(rt.legs[n - 1].dir), PB = P[n];
+  const equip = (pt, out) => {   // out: hướng từ ống đi vào thiết bị
+    flg(pt.clone().addScaledVector(out, 8), out, 16);
+    const bx = add(new T.Mesh(new T.BoxGeometry(D * 2.6, D * 2.6, D * 2.6), mat.pump)); bx.position.copy(pt).addScaledVector(out, 16 + D * 1.3);
+  };
+  if (rt.A.t === 'cTee') { const h = Math.abs(u0.y) > .9 ? new T.Vector3(1, 0, 0) : new T.Vector3().crossVectors(u0, Y).normalize(); cyl(P[0].clone().addScaledVector(h, -D * 3), P[0].clone().addScaledVector(h, D * 3), D * .62, mat.steel); }
+  else if (rt.A.t === 'flg') equip(P[0], u0.clone().negate());
+  else cyl(P[0], P[0].clone().addScaledVector(u0, -D * 1.5), D / 2, mat.steel);
+  if (rt.B.t === 'flg') equip(PB, un); else if (rt.B.t === 'exist') cyl(PB, PB.clone().addScaledVector(un, D * 1.5), D / 2, mat.steel);
+  [['A', P[0]], ['B', PB]].forEach(([t, p]) => { const lb = add(label3D(t, '#ffffff', fs * 1.2)); lb.position.copy(p).add(new T.Vector3(0, D * 2.2, 0)); });
+  // lưới sàn để định hướng
+  const bb = new T.Box3().setFromObject(G), size = bb.getSize(new T.Vector3()), span = Math.max(size.x, size.y, size.z, 6 * D);
+  const grid = new T.GridHelper(span * 1.6, 16, 0x7d8c99, 0x3a4752); grid.material.transparent = true; grid.material.opacity = .45;
+  grid.position.set((bb.min.x + bb.max.x) / 2, bb.min.y - D, (bb.min.z + bb.max.z) / 2); G.add(grid);
+  if (!v3.framed) { v3.target.copy(bb.getCenter(new T.Vector3())); v3.radius = span * 1.9; v3.framed = true; }
+  v3.span = span; v3.center = bb.getCenter(new T.Vector3());
+  v3.scene.background = new T.Color(getComputedStyle(document.documentElement).getPropertyValue('--stage').trim() || '#232c34');
+  size3D();
+}
+function setView3(k) {
+  const V = { iso: [.75, 1.05], front: [0, Math.PI / 2], top: [0, .06], side: [Math.PI / 2, Math.PI / 2] }[k];
+  v3.theta = V[0]; v3.phi = V[1]; if (v3.center) { v3.target.copy(v3.center); v3.radius = v3.span * 1.9; } place3D();
+}
+async function show3D(on) {
+  v3.on = on;
+  $('rt-2d').setAttribute('aria-pressed', !on); $('rt-3d').setAttribute('aria-pressed', on);
+  $('rt3d-wrap').hidden = !on; $('fig-rt').style.display = on ? 'none' : '';   // svg không có thuộc tính hidden $('fig-rt-cap').hidden = on; $('rt2d-opts').hidden = on;
+  if (!on) return;
+  try {
+    const T = await loadThree();
+    if (!v3.r) init3D(T);
+    v3.framed = false; renderRoute();
+  } catch (e) { $('rt3d-msg').textContent = 'Không tải được phần 3D. Cần có mạng ở lần mở đầu tiên, sau đó dùng được khi mất mạng.'; }
+}
+
+function renderAll() { fillPipe(); renderList(); renderRouteForm(); renderRun(); renderOffset(); renderRoute(); renderRef(); save(); }
+function renderCalc() { renderRun(); renderOffset(); renderRoute(); renderRef(); save(); }
+
+// ---------- kho vật tư: kho chung (db) nếu có, nếu không thì lưu trên máy ----------
+const store = { db: null, assets: null, unsubItems: null, local: { projects: [], items: {} } };
+const LKEY = 'utc-vattu-local-v1';
+function newId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+function loadLocal() { try { const d = JSON.parse(localStorage.getItem(LKEY) || 'null'); if (d && d.projects) store.local = d; } catch (e) {} }
+function saveLocal() {
+  try { localStorage.setItem(LKEY, JSON.stringify(store.local)); }
+  catch (e) { alertLib('Bộ nhớ máy đầy, không lưu được. Xoá bớt ảnh vật tư hoặc xuất file rồi xoá dự án cũ.'); }
+}
+// thu nhỏ ảnh còn cạnh dài tối đa `max` px, nén JPEG để lưu trên máy
+function shrinkImage(file, max) {
+  return new Promise((ok, bad) => {
+    const img = new Image(), u = URL.createObjectURL(file);
+    img.onload = () => {
+      const k = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement('canvas');
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(u); ok(c.toDataURL('image/jpeg', .8));
+    };
+    img.onerror = () => { URL.revokeObjectURL(u); bad({ code: 'unsupported_type' }); };
+    img.src = u;
+  });
+}
+// xuất / nhập toàn bộ vật tư ra file .json để gửi qua Zalo cho máy khác
+function exportLib() {
+  const data = JSON.stringify({ app: 'cat-ong-utc', v: 1, exportedAt: new Date().toISOString(), projects: store.local.projects, items: store.local.items });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([data], { type: 'application/json' }));
+  a.download = 'vat-tu-cat-ong-' + new Date().toISOString().slice(0, 10) + '.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+function importLib(file) {
+  const rd = new FileReader();
+  rd.onload = () => {
+    let d; try { d = JSON.parse(rd.result); } catch (e) { d = null; }
+    if (!d || d.app !== 'cat-ong-utc' || !Array.isArray(d.projects) || typeof d.items !== 'object') { alertLib('File không đúng định dạng vật tư của Cắt Ống UTC.'); return; }
+    const clean = s => String(s == null ? '' : s).slice(0, 200);
+    let np = 0, ni = 0;
+    d.projects.forEach(p => {
+      if (!p || !p.id) return;
+      const q = { id: clean(p.id), name: clean(p.name), mat: MAT[p.mat] ? p.mat : 'gi', fam: FAM[p.fam] ? p.fam : 'weld', createdAt: clean(p.createdAt) };
+      const L = store.local.projects, k = L.findIndex(x => x.id === q.id); if (k < 0) L.push(q); else L[k] = q; np++;
+      const list = store.local.items[q.id] = store.local.items[q.id] || [];
+      (Array.isArray(d.items[p.id]) ? d.items[p.id] : []).forEach(it => {
+        if (!it || !it.id || !CATS[it.cat]) return;
+        const lens = {}; Object.keys(it.lens || {}).forEach(dn => { const v = +it.lens[dn]; if (DN.includes(+dn) && v > 0) lens[dn] = v; });
+        const r = { id: clean(it.id), cat: it.cat, code: clean(it.code), name: clean(it.name), brand: clean(it.brand), ends: ENDS[it.ends] ? it.ends : 'F', lens,
+          img: null, imgData: typeof it.imgData === 'string' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(it.imgData) ? it.imgData : null, updatedAt: clean(it.updatedAt) };
+        const j = list.findIndex(x => x.id === r.id); if (j < 0) list.push(r); else list[j] = r; ni++;
+      });
+    });
+    saveLocal(); setProjects(store.local.projects.slice()); watchItems();
+    alertLib(`Đã nhập ${np} dự án, ${ni} vật tư.`);
+  };
+  rd.readAsText(file);
+}
+function setProjects(list, definitive) {
+  lib.projects = list.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'vi'));
+  if (definitive !== false && lib.pid && !lib.projects.some(p => p.id === lib.pid)) selectProject(null);
+  renderProjSelect(); renderLib(); fillPipe();
+}
+function setItems(list) { lib.items = list.sort((a, b) => (a.cat + a.name).localeCompare(b.cat + b.name, 'vi')); renderLib(); renderList(); renderRouteForm(); renderCalc(); }
+function watchItems() {
+  if (store.unsubItems) { store.unsubItems(); store.unsubItems = null; }
+  if (!lib.pid) { setItems([]); return; }
+  if (store.db) {
+    store.unsubItems = store.db.collection('projects/' + lib.pid + '/items').onSnapshot(
+      q => setItems(q.docs.map(d => Object.assign({ id: d.id }, d.data()))),
+      () => setItems([]));
+  } else setItems((store.local.items[lib.pid] || []).slice());
+}
+async function writeProject(p) {
+  if (store.db) { const { id, ...body } = p; await store.db.doc('projects/' + id).set(body); }
+  else { const L = store.local.projects, k = L.findIndex(x => x.id === p.id); if (k < 0) L.push(p); else L[k] = p; saveLocal(); setProjects(L.slice()); }
+}
+async function writeItem(it) {
+  if (store.db) { const { id, ...body } = it; await store.db.doc('projects/' + lib.pid + '/items/' + id).set(body); }
+  else { const L = store.local.items[lib.pid] = store.local.items[lib.pid] || [], k = L.findIndex(x => x.id === it.id); if (k < 0) L.push(it); else L[k] = it; saveLocal(); setItems(L.slice()); }
+}
+async function removeItem(id) {
+  if (store.db) await store.db.doc('projects/' + lib.pid + '/items/' + id).delete();
+  else { store.local.items[lib.pid] = (store.local.items[lib.pid] || []).filter(x => x.id !== id); saveLocal(); setItems(store.local.items[lib.pid].slice()); }
+}
+async function initStore() {
+  loadLocal();
+  let db = null;
+  try { db = window.claude && window.claude.use ? await window.claude.use('db') : null; } catch (e) {}
+  if (db) {
+    store.db = db;
+    $('lib-mode').textContent = 'Kho chung: cả tổ cùng thấy';
+    db.collection('projects').onSnapshot(q => setProjects(q.docs.map(d => Object.assign({ id: d.id }, d.data())), !q.metadata.fromCache), () => {});
+    try { store.assets = await window.claude.use('assets'); } catch (e) {}
+  } else {
+    $('lib-mode').textContent = 'Đang lưu trên máy này';
+    // bản cài trên điện thoại: chia sẻ vật tư bằng file
+    if (document.querySelector('link[rel="manifest"]')) { $('b-export').hidden = false; $('b-import').hidden = false; }
+    setProjects(store.local.projects.slice());
+  }
+  watchItems();
+  renderLib();
+}
+function selectProject(pid) {
+  lib.pid = st.pid = pid || null;
+  const pj = lib.projects.find(p => p.id === lib.pid);
+  if (pj && MAT[pj.mat]) { st.mat = pj.mat; st.fam = MAT[pj.mat].fams.includes(pj.fam) ? pj.fam : MAT[pj.mat].fams[0]; st.od = st.wall = null; }
+  watchItems(); renderAll(); renderProjSelect(); renderLib();
+}
+function renderProjSelect() {
+  $('proj').innerHTML = '<option value="">Không theo dự án (số mặc định)</option>' + lib.projects.map(p => `<option value="${esc(p.id)}"${p.id === lib.pid ? ' selected' : ''}>${esc(p.name)}</option>`).join('');
+}
+
+// ---------- giao diện thư viện ----------
+let editing = null, pickedFile = null, delArm = null;
+function renderLib() {
+  const pj = lib.projects.find(p => p.id === lib.pid), box = $('lib-items');
+  $('lib-h').textContent = pj ? 'Vật tư: ' + pj.name : 'Vật tư dự án';
+  $('b-additem').disabled = !pj;
+  if (!pj) {
+    box.innerHTML = `<div class="empty">${draw3D('bfly').replace('<svg', '<svg style="width:140px"')}<div>${lib.projects.length ? 'Chọn một dự án ở ô "Dự án" phía trên để xem vật tư.' : 'Chưa có dự án nào. Bấm "Dự án mới", đặt tên rồi thêm van, co, tê đúng hãng của dự án.'}</div></div>`;
+    return;
+  }
+  if (!lib.items.length) { box.innerHTML = `<div class="empty"><div>Dự án chưa có vật tư. Bấm "Thêm vật tư" để nhập van, co, tê theo catalogue hãng.</div></div>`; return; }
+  box.innerHTML = lib.items.map(it => {
+    const lens = DN.map((d, k) => projLen(it, k) == null ? '' : `<b>DN${d}</b> ${mm(projLen(it, k))}`).filter(Boolean).join(' · ');
+    return `<div class="item"><div class="pic">${picHtml(it)}</div><div style="min-width:0">
+      <div class="nm">${it.code ? `<span class="code">${esc(it.code)}</span>` : ''}${esc(it.name || CATS[it.cat])}</div>
+      <div class="meta">${symbol(it.cat)}<span>${esc(CATS[it.cat])}</span>${it.brand ? `<span>${esc(it.brand)}</span>` : ''}<span>Đầu nối: ${esc(ENDS[it.ends] || '—')}</span></div>
+      <div class="lens">${lens || '<span style="color:var(--muted)">Chưa nhập chiều dài</span>'}</div>
+      <div class="actions"><button class="ib" data-edit="${esc(it.id)}">Sửa</button><button class="ib${delArm === it.id ? ' danger' : ''}" data-rm="${esc(it.id)}">${delArm === it.id ? 'Bấm lần nữa để xoá' : 'Xoá'}</button></div>
+    </div></div>`;
+  }).join('');
+  fallbackPics(box);
+}
+function fillCatSelects() {
+  $('fi-cat').innerHTML = Object.keys(CATS).map(k => `<option value="${k}">${CATS[k]}</option>`).join('');
+  $('fi-ends').innerHTML = Object.keys(ENDS).map(k => `<option value="${k}">${ENDS[k]}</option>`).join('');
+  const mo = Object.keys(MAT).map(k => `<option value="${k}">${MAT[k].name}</option>`).join('');
+  $('pj-mat').innerHTML = mo;
+}
+function fillPjFam() { $('pj-fam').innerHTML = MAT[$('pj-mat').value].fams.map(f => `<option value="${f}">${FAM[f]}</option>`).join(''); }
+function lenHint() {
+  const c = $('fi-cat').value;
+  $('fi-lenhint').textContent = FITCATS.includes(c) ? (c === 'red' ? 'Chiều dài côn theo catalogue (đầu tới đầu).' : 'Kích thước tâm → đầu phụ kiện theo catalogue.') : 'Chiều dài mặt bích → mặt bích (hoặc đầu tới đầu) theo catalogue.';
+}
+function refreshPreview() {
+  const c = $('fi-cat').value;
+  if (pickedFile) { const u = URL.createObjectURL(pickedFile); $('fi-pic').innerHTML = `<img src="${u}" alt="Ảnh vật tư">`; }
+  else if (editing && editing.img) $('fi-pic').innerHTML = picHtml(Object.assign({}, editing, { cat: c }));
+  else $('fi-pic').innerHTML = draw3D(c);
+}
+function openItemForm(it) {
+  editing = it || null; pickedFile = null;
+  $('fi-h').textContent = it ? 'Sửa vật tư' : 'Thêm vật tư';
+  $('fi-cat').value = it ? it.cat : 'bfly';
+  $('fi-code').value = it ? it.code || '' : '';
+  $('fi-name').value = it ? it.name || '' : '';
+  $('fi-brand').value = it ? it.brand || '' : '';
+  $('fi-ends').value = it ? it.ends || 'F' : 'F';
+  $('fi-img').value = '';
+  const canPic = store.assets || !store.db;   // trên máy: ảnh thu nhỏ lưu kèm vật tư
+  $('fi-imgrow').hidden = !canPic;
+  $('fi-picnote').textContent = canPic ? 'Hình 3D vẽ sẵn theo loại. Chọn ảnh catalogue, ảnh chụp hoặc ảnh mô hình 3D để thay.' : 'Hình 3D vẽ sẵn theo loại. Chỉ người có quyền chỉnh sửa trang mới tải được ảnh riêng.';
+  $('fi-lens').innerHTML = DN.map((d, k) => `<label><span>DN${d}</span><input inputmode="decimal" data-dn="${d}" value="${it && projLen(it, k) != null ? projLen(it, k) : ''}" aria-label="Chiều dài DN${d}"></label>`).join('');
+  $('fi-err').hidden = true;
+  lenHint(); refreshPreview();
+  $('f-item').hidden = false;
+  $('f-item').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function defaultEnds(cat) { return FITCATS.includes(cat) ? famType(st.fam) : 'F'; }
+
+$('b-newproj').addEventListener('click', () => { $('f-proj').hidden = false; $('pj-name').value = ''; $('pj-mat').value = st.mat; fillPjFam(); $('pj-fam').value = st.fam; $('pj-name').focus(); });
+$('pj-cancel').addEventListener('click', () => $('f-proj').hidden = true);
+$('pj-mat').addEventListener('change', fillPjFam);
+$('f-proj').addEventListener('submit', async e => {
+  e.preventDefault();
+  const name = $('pj-name').value.trim(); if (!name) { $('pj-name').focus(); return; }
+  const p = { id: newId(), name, mat: $('pj-mat').value, fam: $('pj-fam').value, createdAt: new Date().toISOString() };
+  try { await writeProject(p); $('f-proj').hidden = true; if (store.db && !lib.projects.some(x => x.id === p.id)) lib.projects.push(p); selectProject(p.id); }
+  catch (err) { alertLib('Không lưu được dự án. Anh cần quyền Contributor trở lên trên trang này.'); }
+});
+function alertLib(msg) { $('lib-items').insertAdjacentHTML('afterbegin', `<div class="note bad">${esc(msg)}</div>`); }
+$('b-additem').addEventListener('click', () => openItemForm(null));
+$('fi-cancel').addEventListener('click', () => { $('f-item').hidden = true; editing = null; });
+$('fi-cat').addEventListener('change', () => { if (!editing) $('fi-ends').value = defaultEnds($('fi-cat').value); lenHint(); refreshPreview(); });
+$('fi-img').addEventListener('change', e => { pickedFile = e.target.files[0] || null; refreshPreview(); });
+$('f-item').addEventListener('submit', async e => {
+  e.preventDefault();
+  const lens = {};
+  $('fi-lens').querySelectorAll('input').forEach(i => { const v = num(i); if (isFinite(v) && v > 0) lens[i.dataset.dn] = v; });
+  const it = { id: editing ? editing.id : newId(), cat: $('fi-cat').value, code: $('fi-code').value.trim(), name: $('fi-name').value.trim(),
+    brand: $('fi-brand').value.trim(), ends: $('fi-ends').value, lens, img: editing ? editing.img || null : null, imgData: editing ? editing.imgData || null : null, updatedAt: new Date().toISOString() };
+  if (!it.name) it.name = CATS[it.cat];
+  const btn = $('fi-save'); btn.disabled = true; btn.textContent = 'Đang lưu…';
+  try {
+    if (pickedFile && store.assets) { const up = await store.assets.upload(pickedFile); it.img = up.id; }
+    else if (pickedFile && !store.db) it.imgData = await shrinkImage(pickedFile, 480);
+    await writeItem(it);
+    $('f-item').hidden = true; editing = null;
+  } catch (err) {
+    const c = err && err.code;
+    $('fi-err').textContent = c === 'too_large' ? 'Ảnh quá lớn (tối đa 20 MB). Chọn ảnh nhỏ hơn.' : c === 'unsupported_type' ? 'Chỉ nhận ảnh PNG, JPG, WEBP, GIF.' : c === 'invalid_argument' ? 'Anh chưa có quyền ghi vào kho vật tư của trang này.' : 'Không lưu được, thử lại sau ít phút.';
+    $('fi-err').hidden = false;
+  } finally { btn.disabled = false; btn.textContent = 'Lưu vật tư'; }
+});
+$('lib-items').addEventListener('click', async e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.edit) { delArm = null; openItemForm(projItem(b.dataset.edit)); return; }
+  if (b.dataset.rm) {
+    if (delArm !== b.dataset.rm) { delArm = b.dataset.rm; renderLib(); return; }
+    delArm = null;
+    try { await removeItem(b.dataset.rm); } catch (err) { alertLib('Không xoá được vật tư.'); }
+    renderLib();
+  }
+});
+$('proj').addEventListener('change', e => selectProject(e.target.value));
+
+// ---------- sự kiện tool ----------
+$('mat').addEventListener('change', e => { st.mat = e.target.value; st.od = st.wall = null; renderAll(); });
+$('fam').addEventListener('change', e => { st.fam = e.target.value; renderAll(); });
+$('dn').addEventListener('change', e => { st.i = +e.target.value; st.od = st.wall = null; st.mid.forEach(m => m.custom = null); st.A.custom = st.B.custom = null; renderAll(); });
+$('od').addEventListener('input', e => { st.od = num(e.target) || null; renderCalcPipe(); });
+$('wall').addEventListener('input', e => { st.wall = num(e.target) || null; renderCalcPipe(); });
+function renderCalcPipe() { const s = S(), m = MAT[st.mat]; $('kgm').value = m.steel ? (0.02466 * s.wall * (s.od - s.wall)).toFixed(2).replace('.', ',') : '—'; renderList(); renderCalc(); }
+['pg', 'pw', 'ps', 'pc', 'meas'].forEach(id => $(id).addEventListener('input', renderCalc));
+['o-ang', 'o-X', 'o-Y', 'o-pos', 'o-L'].forEach(id => $(id).addEventListener('input', () => { renderOffset(); save(); }));
+$('run').addEventListener('change', e => {
+  const a = e.target.dataset.anchor;
+  if (a) { st[a] = { t: e.target.value, custom: null }; renderList(); renderCalc(); }
+});
+$('run').addEventListener('input', e => {
+  const k = e.target.dataset.len; if (k == null) return;
+  const el = k === 'A' || k === 'B' ? st[k] : st.mid[+k], v = num(e.target);
+  el.custom = isFinite(v) ? v : null;
+  e.target.classList.toggle('custom', el.custom != null);
+  renderCalc();
+});
+$('run').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const d = b.dataset, m = st.mid;
+  if (d.up != null) { const i = +d.up; [m[i - 1], m[i]] = [m[i], m[i - 1]]; }
+  else if (d.down != null) { const i = +d.down; [m[i + 1], m[i]] = [m[i], m[i + 1]]; }
+  else if (d.del != null) m.splice(+d.del, 1);
+  else return;
+  renderList(); renderCalc();
+});
+$('add').addEventListener('change', e => {
+  const v = e.target.value; if (!v) return;
+  st.mid.push(v.startsWith('pi:') ? { t: 'pi', id: v.slice(3), custom: null } : { t: v, custom: null });
+  renderList(); renderCalc();
+});
+document.querySelectorAll('input[inputmode="decimal"]').forEach(i => i.addEventListener('focus', () => i.select()));
+document.addEventListener('focusin', e => { if (e.target.matches('.ctl input, .dngrid input')) e.target.select(); });
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-copy]'); if (!b) return;
+  const k = b.dataset.copy, txt = texts[k] || '', note = $('cp-' + k);
+  const fallback = () => { const ta = document.createElement('textarea'); ta.className = 'fallback'; ta.value = txt; b.parentNode.after(ta); ta.select(); note.textContent = 'Giữ vào ô bên dưới để sao chép.'; };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(() => { note.textContent = 'Đã chép, dán vào Zalo.'; }, fallback); else fallback();
+});
+// tuyến nhiều đoạn
+const rtEl = key => { const [k, i] = key.split(':').map(Number); return { k, i, leg: st.route.legs[k] }; };
+$('route').addEventListener('change', e => {
+  const t = e.target, d = t.dataset, rt = st.route;
+  if (d.ranchor) { rt[d.ranchor] = { t: t.value, custom: null }; }
+  else if (d.rdir != null) { rt.legs[+d.rdir].dir = t.value; }
+  else if (d.radd != null) { if (!t.value) return; rt.legs[+d.radd].items.push(t.value.startsWith('pi:') ? { t: 'pi', id: t.value.slice(3), custom: null } : { t: t.value, custom: t.value === 'kpipe' ? 500 : null }); }
+  else return;
+  renderRouteForm(); renderRoute(); save();
+});
+$('route').addEventListener('input', e => {
+  const t = e.target, d = t.dataset, v = num(t);
+  if (d.rleg != null) st.route.legs[+d.rleg].len = isFinite(v) ? v : 0;
+  else if (d.rlen) { const { leg, i } = rtEl(d.rlen); leg.items[i].custom = isFinite(v) ? v : null; t.classList.toggle('custom', leg.items[i].custom != null); }
+  else if (d.ralen) { st.route[d.ralen].custom = isFinite(v) ? v : null; t.classList.toggle('custom', st.route[d.ralen].custom != null); }
+  else return;
+  renderRoute(); save();
+});
+$('route').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const d = b.dataset;
+  if (d.rup) { const { leg, i } = rtEl(d.rup); [leg.items[i - 1], leg.items[i]] = [leg.items[i], leg.items[i - 1]]; }
+  else if (d.rdown) { const { leg, i } = rtEl(d.rdown); [leg.items[i + 1], leg.items[i]] = [leg.items[i], leg.items[i + 1]]; }
+  else if (d.rdel) { const { leg, i } = rtEl(d.rdel); leg.items.splice(i, 1); }
+  else if (d.rmleg != null) st.route.legs.splice(+d.rmleg, 1);
+  else return;
+  renderRouteForm(); renderRoute(); save();
+});
+$('rt-2d').addEventListener('click', () => show3D(false));
+$('rt-3d').addEventListener('click', () => show3D(true));
+document.querySelectorAll('[data-view3]').forEach(b => b.addEventListener('click', () => setView3(b.dataset.view3)));
+$('rt-view').value = st.route.view || 'auto';
+$('rt-view').addEventListener('change', e => { st.route.view = e.target.value; renderRoute(); save(); });
+$('rt-addleg').addEventListener('click', () => {
+  const L = st.route.legs, last = L[L.length - 1].dir;
+  L.push({ dir: ['L', 'R'].includes(last) ? 'D' : 'L', len: 1000, items: [{ t: 'pipe' }] });
+  renderRouteForm(); renderRoute(); save();
+});
+const TABS = ['tuyen', 'lech', 'nhieu', 'vattu', 'tra'];
+function show(id) {
+  document.querySelectorAll('nav.tabs button').forEach(b => b.setAttribute('aria-selected', b.getAttribute('aria-controls') === id));
+  TABS.forEach(k => $(k).hidden = k !== id);
+}
+document.querySelectorAll('nav.tabs button').forEach(b => b.addEventListener('click', () => show(b.getAttribute('aria-controls'))));
+window.addEventListener('hashchange', () => { const k = location.hash.slice(1); if (TABS.includes(k)) show(k); });
+fillCatSelects(); renderProjSelect(); renderAll(); renderLib();
+{ const k = location.hash.slice(1); if (TABS.includes(k)) show(k); }
+$('b-export').addEventListener('click', exportLib);
+$('f-import').addEventListener('change', e => { const f = e.target.files[0]; if (f) importLib(f); e.target.value = ''; });
+// cài ứng dụng: chỉ ở bản PWA (có manifest), chưa cài
+if (document.querySelector('link[rel="manifest"]') && !matchMedia('(display-mode: standalone)').matches && !navigator.standalone) {
+  let ev = null;
+  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); ev = e; $('install').hidden = false; });
+  $('install-b').addEventListener('click', async () => { if (!ev) return; ev.prompt(); try { await ev.userChoice; } catch (e) {} ev = null; $('install').hidden = true; });
+  window.addEventListener('appinstalled', () => { $('install').hidden = true; });
+  if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
+    $('install-t').textContent = 'Cài lên iPhone: bấm nút Chia sẻ (ô vuông có mũi tên) ở thanh Safari, chọn "Thêm vào MH chính".';
+    $('install-b').hidden = true; $('install').hidden = false;
+  }
+}
+initStore();
+</script>
+
+<script>
+if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+</script>
+<!-- build 202610251523 -->
+</body>
+</html>
