@@ -208,6 +208,8 @@ svg text{font-family:var(--f-num);fill:var(--ink)}
     <label class="f"><span>Đường kính ngoài</span><div class="inp"><input id="od" inputmode="decimal"><i>mm</i></div></label>
     <label class="f"><span>Độ dày thành ống</span><div class="inp"><input id="wall" inputmode="decimal"><i>mm</i></div></label>
     <label class="f"><span>Khối lượng</span><div class="inp"><input id="kgm" readonly tabindex="-1"><i>kg/m</i></div></label>
+    <label class="f"><span>Độ dày mặt bích <small>(thợ đo thực tế)</small></span><div class="inp"><input id="pt" inputmode="decimal"><i>mm</i></div></label>
+    <label class="f"><span>Ống gắn vào bích</span><div class="inp sel"><select id="pfm"><option value="tf">Trừ hết độ dày bích</option><option value="slip">Ống lồng trong bích, lùi vào</option></select></div></label>
   </div>
   <details class="more">
     <summary>Thông số mối nối (gioăng, khe hàn…)</summary>
@@ -229,7 +231,42 @@ svg text{font-family:var(--f-num);fill:var(--ink)}
     <div class="addrow"><select id="add" aria-label="Thêm van hoặc phụ kiện"></select></div>
     <label class="f"><span>Khoảng đo thực tế từ A tới B <small>(theo tim ống)</small></span><div class="inp big"><input id="meas" inputmode="decimal" value="2500"><i>mm</i></div></label>
   </div>
-  <div class="card fig" aria-label="Sơ đồ tuyến"><svg id="strip" viewBox="0 0 360 76"></svg></div>
+  <div class="card fig" aria-label="Sơ đồ tuyến">
+    <div class="seg" role="group" aria-label="Kiểu xem"><button type="button" data-v3m="tuyen" data-v3on="0" aria-pressed="true">Bản vẽ</button><button type="button" data-v3m="tuyen" data-v3on="1" aria-pressed="false">3D xoay được</button></div>
+    <div id="tuyen-2d"><svg id="strip" viewBox="0 0 360 76"></svg></div>
+    <div id="slot-tuyen"></div>
+  </div>
+  <details class="card more" open>
+    <summary>Kích thước tính từ đâu</summary>
+    <svg viewBox="0 0 360 150" aria-label="Mốc kích thước" style="width:100%;height:auto;display:block">
+      <g font-size="8.5" font-family="JetBrains Mono, monospace">
+        <path d="M20 4V128" style="stroke:var(--ink);stroke-width:1;stroke-dasharray:6 2 1.5 2"/>
+        <rect x="8" y="30" width="24" height="96" rx="2" style="fill:var(--p-mid);stroke:var(--p-lo)"/>
+        <rect x="32" y="64" width="30" height="28" style="fill:var(--p-mid);stroke:var(--p-lo)"/>
+        <rect x="63" y="64" width="117" height="28" style="fill:var(--accent)"/>
+        <rect x="180" y="52" width="10" height="52" style="fill:var(--p-hi);stroke:var(--p-lo)"/>
+        <rect x="190" y="54" width="3" height="48" style="fill:var(--ink)"/>
+        <rect x="193" y="52" width="8" height="52" style="fill:var(--v-mid);stroke:var(--v-lo)"/>
+        <rect x="201" y="60" width="40" height="36" style="fill:var(--v-mid)"/>
+        <rect x="241" y="52" width="8" height="52" style="fill:var(--v-mid);stroke:var(--v-lo)"/>
+        <rect x="249" y="54" width="3" height="48" style="fill:var(--ink)"/>
+        <rect x="252" y="40" width="44" height="76" rx="4" style="fill:#2f7a64"/>
+        <path d="M20 78H300" style="stroke:var(--ink);stroke-width:.8;stroke-dasharray:6 2 1.5 2"/>
+        <path d="M20 112H62M20 109V115M62 109V115" style="stroke:var(--ink);fill:none"/><text x="41" y="124" text-anchor="middle">A tâm→đầu</text>
+        <path d="M63 50H190M63 47V53M190 47V53" style="stroke:var(--accent);fill:none"/><text x="126" y="44" text-anchor="middle" style="fill:var(--accent)">ống có bích: mặt → mặt bích</text>
+        <path d="M63 108H180M63 105V111M180 105V111" style="stroke:var(--ink);fill:none"/><text x="121" y="120" text-anchor="middle" font-weight="700">ỐNG CẮT</text>
+        <path d="M180 136H190M180 133V139M190 133V139" style="stroke:var(--ink);fill:none"/><text x="185" y="148" text-anchor="middle">T</text>
+        <path d="M193 26H249M193 23V29M249 23V29" style="stroke:var(--ink);fill:none"/><text x="221" y="19" text-anchor="middle">L van: mặt → mặt</text>
+        <text x="191" y="136" text-anchor="start">g</text><text x="274" y="82" text-anchor="middle" style="fill:#fff">Bơm</text>
+      </g>
+    </svg>
+    <ul class="lead" style="font-size:14px;margin:0;padding-left:18px;display:grid;gap:4px">
+      <li><b>Van, Y lọc, khớp mềm</b>: chiều dài <b>mặt bích → mặt bích</b> của chính van (L), không gồm gioăng.</li>
+      <li><b>Co, tê</b>: <b>tâm → đầu</b> phụ kiện (A), đo từ đường tim ống tới mép đầu co/tê.</li>
+      <li><b>Gioăng (g)</b> trừ ở mỗi chỗ 2 mặt bích ép vào nhau.</li>
+      <li><b>Bích của ống cắt (T)</b>: thợ đo độ dày thực tế, nhập ở ô "Độ dày mặt bích". Tool tính đoạn ống có bích từ mép mặt bích này tới mép mặt bích kia, rồi trừ 2 × T ra ống cắt.</li>
+    </ul>
+  </details>
   <div class="result" id="r-tuyen" aria-live="polite"></div>
 </section>
 
@@ -248,8 +285,11 @@ svg text{font-family:var(--f-num);fill:var(--ink)}
       <label class="f full" id="o-Lrow"><span>Khoảng L dọc tuyến giữa 2 đầu ống <small>(đo song song tim ống, từ đầu ống 1 tới đầu ống 2)</small></span><div class="inp"><input id="o-L" inputmode="decimal" value="900"><i>mm</i></div></label>
     </div>
   </div>
-  <div class="card fig" aria-label="Sơ đồ lệch tâm"><svg id="fig-o" viewBox="0 0 360 160"></svg>
-    <div class="legend"><span><svg viewBox="0 0 34 8" width="34" height="8"><path d="M0 4H34" style="stroke:var(--ink);stroke-width:1.3;stroke-dasharray:9 3 2 3"/></svg>tim ống</span><span><svg viewBox="0 0 12 12" width="12" height="12"><circle cx="6" cy="6" r="4" style="fill:var(--surface);stroke:var(--ink);stroke-width:1.6"/></svg>tâm co (giao 2 đường tim)</span><span><svg viewBox="0 0 20 8" width="20" height="8"><rect width="20" height="8" rx="1" style="fill:var(--accent)"/></svg>ống cần cắt</span></div>
+  <div class="card fig" aria-label="Sơ đồ lệch tâm">
+    <div class="seg" role="group" aria-label="Kiểu xem"><button type="button" data-v3m="lech" data-v3on="0" aria-pressed="true">Bản vẽ</button><button type="button" data-v3m="lech" data-v3on="1" aria-pressed="false">3D xoay được</button></div>
+    <div id="slot-lech"></div>
+    <div id="lech-2d"><svg id="fig-o" viewBox="0 0 360 160"></svg>
+    <div class="legend"><span><svg viewBox="0 0 34 8" width="34" height="8"><path d="M0 4H34" style="stroke:var(--ink);stroke-width:1.3;stroke-dasharray:9 3 2 3"/></svg>tim ống</span><span><svg viewBox="0 0 12 12" width="12" height="12"><circle cx="6" cy="6" r="4" style="fill:var(--surface);stroke:var(--ink);stroke-width:1.6"/></svg>tâm co (giao 2 đường tim)</span><span><svg viewBox="0 0 20 8" width="20" height="8"><rect width="20" height="8" rx="1" style="fill:var(--accent)"/></svg>ống cần cắt</span></div></div>
     <p class="lead" style="font-size:13.5px">Cách đo: căng dây hoặc dọi theo tim 2 ống, đo khoảng cách giữa 2 đường tim (lệch H), không đo mép ống. Ống lệch cả ngang lẫn đứng thì đo riêng X và Y.</p></div>
   <div class="result" id="r-lech" aria-live="polite"></div>
 </section>
@@ -264,10 +304,10 @@ svg text{font-family:var(--f-num);fill:var(--ink)}
   </div>
   <div class="card fig" aria-label="Sơ đồ tuyến nhiều đoạn">
     <div class="seg" role="group" aria-label="Kiểu xem">
-      <button id="rt-2d" type="button" aria-pressed="true">Bản vẽ</button>
-      <button id="rt-3d" type="button" aria-pressed="false">3D xoay được</button>
+      <button type="button" data-v3m="nhieu" data-v3on="0" aria-pressed="true">Bản vẽ</button>
+      <button type="button" data-v3m="nhieu" data-v3on="1" aria-pressed="false">3D xoay được</button>
     </div>
-    <div id="rt3d-wrap" hidden>
+    <div id="slot-nhieu"><div id="rt3d-wrap" hidden>
       <div id="rt3d" class="v3"></div>
       <div class="actions" style="margin-top:8px">
         <button class="ib" type="button" data-view3="iso">Góc 3D</button>
@@ -277,9 +317,10 @@ svg text{font-family:var(--f-num);fill:var(--ink)}
       </div>
       <p class="lead" style="font-size:13.5px;margin-top:6px" id="rt3d-msg">Kéo 1 ngón để xoay. Chụm 2 ngón để phóng to, kéo 2 ngón để di chuyển. Trên máy tính: kéo chuột để xoay, cuộn để phóng to, chuột phải để di chuyển.</p>
     </div>
-    <div class="projbar" id="rt2d-opts"><label class="f"><span>Kiểu hình</span><div class="inp sel"><select id="rt-view"><option value="auto">Tự động (isometric khi có hướng vào/ra)</option><option value="flat">Mặt đứng</option><option value="iso">Isometric 3D</option></select></div></label></div>
+    </div>
+    <div id="nhieu-2d"><div class="projbar" id="rt2d-opts"><label class="f"><span>Kiểu hình</span><div class="inp sel"><select id="rt-view"><option value="auto">Tự động (isometric khi có hướng vào/ra)</option><option value="flat">Mặt đứng</option><option value="iso">Isometric 3D</option></select></div></label></div>
     <svg id="fig-rt" viewBox="0 0 360 300"></svg>
-    <p class="lead" style="font-size:13.5px" id="fig-rt-cap"></p></div>
+    <p class="lead" style="font-size:13.5px" id="fig-rt-cap"></p></div></div>
   <div class="result" id="r-nhieu" aria-live="polite"></div>
 </section>
 
@@ -374,6 +415,8 @@ const FIT = {
           tee: [N, N, 57, 70, 70, 83, 95, 108, 127, 140, 165, 197, 229, 254],
           red: [N, N, 64, 64, 64, 64, 64, 64, 76, 89, 102, 127, 152, 178], src: 'phụ kiện rãnh (tham khảo)' },
 };
+// độ dày bích hàn PN16 thường gặp (mm), chỉ dùng tạm khi thợ chưa nhập số đo thực tế
+const FLG_T = [14, 16, 16, 18, 18, 18, 18, 20, 20, 22, 22, 24, 26, 28];
 const THREAD = [13, 14, 17, 18, 18, 19, 29, 30, 33];   // chiều sâu ăn ren (mm), tới DN100
 // chiều dài mặt bích → mặt bích (mm)
 const VALVE = {
@@ -423,7 +466,9 @@ function endType(el, S) {
 // phần ống mất đi (+) hoặc được thêm (−) ở chỗ ống cắt gặp phần tử kiểu o
 function pipeEnd(o, S) {
   switch (o) {
-    case 'F': return { v: S.g + S.s, txt: `bích hàn trượt: gioăng ${S.g} + ống lùi ${S.s}` };
+    case 'F': return S.fm === 'slip'
+      ? { v: S.g + S.s, off: S.s, txt: `bích lồng: gioăng ${S.g} + ống lùi trong bích ${S.s}` }
+      : { v: S.g + S.tf, off: S.tf, txt: `bích: gioăng ${S.g} + dày bích ${S.tf}${S.tfMeasured ? ' (đo thực tế)' : ' (tạm tính)'}` };
     case 'W': return { v: S.w, txt: `khe hàn ${S.w}` };
     case 'T': return { v: -THREAD[Math.min(S.i, 8)], txt: `ren ăn vào ${THREAD[Math.min(S.i, 8)]}` };
     case 'G': return { v: S.c, txt: `khe khớp rãnh ${S.c}` };
@@ -460,14 +505,16 @@ function calcRun(S, els, meas) {
   let sum = 0, missing = [];
   els.forEach(el => { const L = elLen(el, S); if (L == null) missing.push(el); else if (L) { sum += L; lines.push({ el, v: L }); } });
   if (missing.length) return { err: 'Chưa có chiều dài DN' + DN[S.i] + ' cho: ' + missing.map(elName).join(', ') + '. Nhập tay trong tuyến hoặc bổ sung ở tab Vật tư dự án.' };
-  let jsum = 0;
+  let jsum = 0, offs = 0, nf = 0;
   for (let k = 0; k < els.length - 1; k++) {
     const j = joint(els[k], els[k + 1], S);
     if (j.warn && !warns.includes(j.warn)) warns.push(j.warn);
     if (j.v) { jsum += j.v; lines.push({ j, v: j.v, a: els[k], b: els[k + 1] }); }
+    // bích ở đầu ống cắt: cộng lại để ra chiều dài mặt bích → mặt bích của đoạn ống có bích
+    if (j.off && (els[k].t === 'pipe' || els[k + 1].t === 'pipe')) { offs += j.off; nf++; }
   }
-  const cut = meas - sum - jsum;
-  return { cut, sum, jsum, lines, warns, err: cut <= 0 ? 'Khoảng đo ngắn hơn tổng van và phụ kiện ' + Math.round(sum + jsum) + ' mm. Kiểm tra lại số đo hoặc danh sách.' : null };
+  const cut = meas - sum - jsum, spool = cut + offs;
+  return { cut, spool, nf, offs, sum, jsum, lines, warns, err: cut <= 0 ? 'Khoảng đo ngắn hơn tổng van và phụ kiện ' + Math.round(sum + jsum) + ' mm. Kiểm tra lại số đo hoặc danh sách.' : null };
 }
 function elbowA(S, ang) {
   if (ang === 90) return fitLen(S, 'e90');
@@ -593,7 +640,7 @@ let st = { mat: 'gi', fam: 'weld', i: 10, od: null, wall: null, pid: null,
   mid: [{ t: 'pipe' }, { t: 'bfly', custom: null }, { t: 'chkw', custom: null }, { t: 'flex', custom: null }] };
 const KEY = 'utc-catong-v1';
 try { const d = JSON.parse(localStorage.getItem(KEY) || 'null'); if (d && d.mid) st = Object.assign(st, d); } catch (e) {}
-function save() { try { const d = Object.assign({}, st, { inputs: {} }); ['pg', 'pw', 'ps', 'pc', 'meas', 'o-ang', 'o-X', 'o-Y', 'o-pos', 'o-L'].forEach(k => d.inputs[k] = $(k).value); localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} }
+function save() { try { const d = Object.assign({}, st, { inputs: {} }); ['pg', 'pw', 'ps', 'pc', 'pt', 'pfm', 'meas', 'o-ang', 'o-X', 'o-Y', 'o-pos', 'o-L'].forEach(k => d.inputs[k] = $(k).value); localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} }
 if (st.inputs) Object.keys(st.inputs).forEach(k => { if ($(k)) $(k).value = st.inputs[k]; });
 lib.pid = st.pid;
 if (!st.route || !st.route.legs) st.route = defRoute();
@@ -602,7 +649,9 @@ function S() {
   const m = MAT[st.mat];
   const od = st.od != null ? st.od : m.od[st.i], wall = st.wall != null ? st.wall : m.wall[st.i];
   const s = num($('ps'));
-  return { mat: st.mat, fam: st.fam, i: st.i, od, wall, g: num($('pg')) || 0, w: num($('pw')) || 0, c: num($('pc')) || 0, s: isFinite(s) ? s : Math.round(wall) };
+  const tf = num($('pt'));
+  return { mat: st.mat, fam: st.fam, i: st.i, od, wall, g: num($('pg')) || 0, w: num($('pw')) || 0, c: num($('pc')) || 0, s: isFinite(s) ? s : Math.round(wall),
+    fm: $('pfm').value, tf: isFinite(tf) && tf >= 0 ? tf : FLG_T[st.i], tfMeasured: isFinite(tf) && tf >= 0 };
 }
 
 function fillPipe() {
@@ -619,6 +668,7 @@ function fillPipe() {
   $('od').value = s.od; $('wall').value = s.wall;
   $('kgm').value = m.steel ? (0.02466 * s.wall * (s.od - s.wall)).toFixed(2).replace('.', ',') : '—';
   $('ps').placeholder = '= dày ống (' + Math.round(s.wall) + ')';
+  $('pt').placeholder = 'tạm ' + FLG_T[st.i] + ', đo rồi nhập';
   const pj = lib.projects.find(p => p.id === lib.pid);
   $('tag').textContent = `DN${DN[st.i]} · ${FAM[st.fam].split(' ')[0]}${pj ? ' · ' + pj.name : ''}`;
 }
@@ -713,17 +763,24 @@ function renderRun() {
   if (r.err && !r.lines) { el.innerHTML = '<h2>Đoạn ống cần cắt</h2><div class="note bad">' + esc(r.err) + '</div>'; texts.tuyen = ''; return; }
   let html = '<h2>Đoạn ống cần cắt</h2>';
   if (r.err) html += '<div class="note bad">' + esc(r.err) + '</div>';
-  else html += `<div class="big"><div><span>Chiều dài cắt</span><b>${mm(r.cut)}<small>mm</small></b></div><div><span>Ống</span><b style="font-size:30px">DN${DN[s.i]}</b></div></div>`;
+  else html += `<div class="big"><div><span>Ống cắt${r.nf ? (s.fm === 'slip' ? ' (ống lồng trong bích)' : ' (đã trừ dày bích)') : ''}</span><b>${mm(r.cut)}<small>mm</small></b></div>`
+    + (r.nf ? `<div><span>Có bích: mặt → mặt bích</span><b style="font-size:34px">${mm(r.spool)}<small>mm</small></b></div>` : `<div><span>Ống</span><b style="font-size:30px">DN${DN[s.i]}</b></div>`) + '</div>';
   html += '<table class="kv">' + `<tr><td>Khoảng đo A → B</td><td>${mm(meas)}</td></tr>`
     + r.lines.map(l => `<tr><td>${esc(lineLabel(l))}</td><td>${sg(l.v)}</td></tr>`).join('')
-    + `<tr class="sum"><td>Ống cắt</td><td>${r.err ? '—' : mm(r.cut)}</td></tr></table>`;
+    + `<tr class="sum"><td>Ống cắt</td><td>${r.err ? '—' : mm(r.cut)}</td></tr>`
+    + (r.nf && !r.err ? `<tr><td>+ ${r.nf} × ${s.fm === 'slip' ? 'ống lùi trong bích ' + mm(s.s) : 'dày bích ' + mm(s.tf)}</td><td>+ ${mm(r.offs)}</td></tr><tr class="sum"><td>Đoạn ống có bích, mặt bích → mặt bích</td><td>${mm(r.spool)}</td></tr>` : '') + '</table>';
+  if (!r.err && r.nf) html += s.fm === 'slip'
+    ? `<div class="note info">Ống lồng vào bích, đầu ống lùi ${mm(s.s)} mm so với mặt bích để hàn mặt trong. Hàn xong đo mặt bích → mặt bích phải đúng ${mm(r.spool)} mm.</div>`
+    : `<div class="note ${s.tfMeasured ? 'info' : ''}">Ống cắt đã trừ ${r.nf} × dày bích ${mm(s.tf)} mm${s.tfMeasured ? ' (số thợ đo)' : '. <b>Chưa nhập độ dày bích đo thực tế</b>, đang tạm tính theo PN16. Đo bích rồi nhập ở ô "Độ dày mặt bích"'}. Hàn bích xong đo mặt bích → mặt bích phải đúng ${mm(r.spool)} mm.</div>`;
   r.warns.forEach(w => html += `<div class="note">${w}</div>`);
   if (!r.err && r.cut < 100) html += '<div class="note">Đoạn ống ngắn dưới 100 mm, khó hàn bích và khó lắp. Cân nhắc dời vị trí ống hoặc đổi phụ kiện.</div>';
   if (!r.err && r.cut > 6000) html += `<div class="note info">Dài hơn 1 cây ống 6 m: cần nối thêm ${Math.ceil(r.cut / 6000) - 1} mối, mỗi mối nối trừ thêm khe hàn/khớp.</div>`;
   el.innerHTML = html + (r.err ? '' : copyBtn('tuyen'));
   const pj = lib.projects.find(p => p.id === lib.pid);
   texts.tuyen = r.err ? '' : `${pj ? 'DỰ ÁN ' + pj.name + '\n' : ''}CẮT ỐNG DN${DN[s.i]} ${MAT[s.mat].name}, nối ${FAM[s.fam]}\nA: ${NAME[st.A.t]} → B: ${NAME[st.B.t]}\nKhoảng đo: ${mm(meas)} mm\n`
-    + r.lines.map(l => `${lineLabel(l)}: ${sg(l.v)}`).join('\n') + `\n=> ỐNG CẮT: ${mm(r.cut)} mm`;
+    + r.lines.map(l => `${lineLabel(l)}: ${sg(l.v)}`).join('\n') + `\n=> ỐNG CẮT: ${mm(r.cut)} mm`
+    + (r.nf ? `\n=> CÓ BÍCH, MẶT BÍCH → MẶT BÍCH: ${mm(r.spool)} mm (${s.fm === 'slip' ? 'ống lùi ' + mm(s.s) : 'dày bích ' + mm(s.tf)} × ${r.nf})` : '');
+  if (v3.mode === 'tuyen') rebuild3D();
 }
 
 function renderOffset() {
@@ -732,6 +789,7 @@ function renderOffset() {
   $('o-Lrow').hidden = pos === 'none';
   const Lm = pos === 'none' || !isFinite(Lv) ? null : pos === 'over' ? -Lv : Lv;
   const r = calcOffset(s, av === 'auto' ? 'auto' : parseFloat(av), X, Y, Lm), el = $('r-lech'), svg = $('fig-o');
+  v3.off = Object.assign({ X, Y }, r); if (v3.mode === 'lech') rebuild3D();
   if (r.err && r.A == null) { el.innerHTML = '<h2>Kết quả</h2><div class="note bad">' + r.err + '</div>'; svg.innerHTML = ''; texts.lech = ''; return; }
   const ang = r.ang, angT = String(ang).replace('.', ',') + '°';
   const hasL = r.Lm != null, d = hasL ? r.diff : 0;
@@ -898,7 +956,7 @@ function renderRouteForm() {
 function renderRoute() {
   const s = S(), rt = st.route, R = calcRoute(s, rt), el = $('r-nhieu');
   drawRoute(s, rt, R);
-  if (v3.on) build3D(s, rt, R);
+  if (v3.mode === 'nhieu') build3D(s, rt, R);
   let html = '<h2>Các ống cần cắt</h2>';
   R.errs.forEach(e => html += `<div class="note bad">${e}</div>`);
   const pieces = [];
@@ -912,6 +970,7 @@ function renderRoute() {
     html += `<div class="big"><div><span>Số ống cắt</span><b>${pieces.length}</b></div><div><span>Tổng chiều dài</span><b>${mm(tot)}<small>mm</small></b></div>${m.steel ? `<div><span>Khối lượng</span><b style="font-size:34px">${(tot / 1000 * 0.02466 * s.wall * (s.od - s.wall)).toFixed(1).replace('.', ',')}<small>kg</small></b></div>` : ''}</div>`;
   }
   html += '<table class="kv">' + R.legs.map((L, k) => `<tr><td>Ống ${k + 1} · đoạn ${k + 1} (${DIRS[rt.legs[k].dir][2].split(' ')[0]} tâm–tâm ${mm(rt.legs[k].len)})</td><td>${L.r.err ? '<span style="color:var(--bad-ink)">lỗi</span>' : mm(L.r.cut)}</td></tr>`
+    + (!L.r.err && L.r.nf ? `<tr><td style="padding-left:14px;color:var(--muted)">có bích, mặt bích → mặt bích</td><td>${mm(L.r.spool)}</td></tr>` : '')
     + known.filter(p => p.k === k).map(p => `<tr><td style="padding-left:14px;color:var(--muted)">+ ống đã biết trong đoạn ${k + 1}</td><td>${mm(p.v)}</td></tr>`).join('')).join('') + '</table>';
   R.legs.forEach((L, k) => {
     if (L.r.err && !L.r.lines) { html += `<div class="note bad">Đoạn ${k + 1}: ${esc(L.r.err)}</div>`; return; }
@@ -1084,12 +1143,15 @@ function label3D(text, color, h) {
   sp.scale.set(h * w / c.height, h, 1); sp.renderOrder = 10;
   return sp;
 }
-function build3D(s, rt, R) {
+// opts.vecs: hướng từng đoạn (Vector3) thay cho rt.legs[].dir; opts.trims: tâm → đầu co tại từng nút
+function build3D(s, rt, R, opts) {
+  opts = opts || {};
   const T = v3.T; if (!T || !v3.scene) return;
   if (v3.group) { v3.scene.remove(v3.group); v3.group.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material && o.material.map) { o.material.map.dispose(); o.material.dispose(); } }); }
   const G = new T.Group(); v3.group = G; v3.scene.add(G);
   const D = s.od, Y = new T.Vector3(0, 1, 0), mat = v3.mat;
   const V = k => { const d = DIRS[k]; return new T.Vector3(d[0], d[1], -(d[3] || 0)).normalize(); };   // vào trong = -z (xa người nhìn)
+  const LV = k => opts.vecs ? opts.vecs[k].clone() : V(rt.legs[k].dir);
   const add = m => { G.add(m); return m; };
   const cyl = (a, b, r1, m, r2) => {
     const v = new T.Vector3().subVectors(b, a), L = v.length(); if (L < .1) return null;
@@ -1137,18 +1199,25 @@ function build3D(s, rt, R) {
   };
   // các nút tâm co
   const P = [new T.Vector3()];
-  rt.legs.forEach(lg => P.push(P[P.length - 1].clone().addScaledVector(V(lg.dir), lg.len)));
-  const n = rt.legs.length, fs = Math.max(D * 1.1, 0);
-  const trimAt = j => { if (j <= 0 || j >= n) return 0; const a = turnAng(rt.legs[j - 1].dir, rt.legs[j].dir); return fitLen(s, a === 45 ? 'e45' : 'e90') || D; };
+  rt.legs.forEach((lg, k) => P.push(P[P.length - 1].clone().addScaledVector(LV(k), lg.len)));
+  const pb = new T.Box3().setFromPoints(P), pspan = Math.max(...pb.getSize(new T.Vector3()).toArray(), 4 * D);
+  const n = rt.legs.length, fs = Math.min(D * 1.1, Math.max(D * .6, pspan * .06));   // cỡ chữ theo độ lớn tuyến
+  const isElb = el => el.t === 'cE90' || el.t === 'cE45';
+  const trimAt = j => {
+    if (opts.trims) return opts.trims[j];
+    if (j <= 0) return isElb(rt.A) ? elLen(rt.A, s) || D : 0;
+    if (j >= n) return isElb(rt.B) ? elLen(rt.B, s) || D : 0;
+    const a = turnAng(rt.legs[j - 1].dir, rt.legs[j].dir); return fitLen(s, a === 45 ? 'e45' : 'e90') || D;
+  };
   // co uốn tại các nút
   for (let j = 1; j < n; j++) {
-    const A = trimAt(j), u1 = V(rt.legs[j - 1].dir), u2 = V(rt.legs[j].dir);
+    const A = trimAt(j), u1 = LV(j - 1), u2 = LV(j);
     const curve = new T.QuadraticBezierCurve3(P[j].clone().addScaledVector(u1, -A), P[j].clone(), P[j].clone().addScaledVector(u2, A));
     add(new T.Mesh(new T.TubeGeometry(curve, 24, D / 2, 24, false), mat.steel));
   }
   // từng đoạn: ống nền, rồi ống cắt, van, khớp đúng vị trí
   rt.legs.forEach((lg, k) => {
-    const u = V(lg.dir), L = R.legs[k], els = L.els, A0 = trimAt(k), A1 = trimAt(k + 1);
+    const u = LV(k), L = R.legs[k], els = L.els, A0 = trimAt(k), A1 = trimAt(k + 1);
     cyl(P[k].clone().addScaledVector(u, A0), P[k + 1].clone().addScaledVector(u, -A1), D / 2 * .985, mat.steel);
     let pos = 0;
     els.forEach((el, i) => {
@@ -1169,39 +1238,77 @@ function build3D(s, rt, R) {
     const lb = add(label3D(`${k + 1}: ${mm(lg.len)}`, '#c9d3db', fs * .8)); lb.position.copy(P[k].clone().lerp(P[k + 1], .5)).addScaledVector(upOf(u), -D * 1.4);
   });
   // mốc A và B
-  const u0 = V(rt.legs[0].dir), un = V(rt.legs[n - 1].dir), PB = P[n];
+  const u0 = LV(0), un = LV(n - 1), PB = P[n];
+  // mốc là tâm co: vẽ co quay lên và một đoạn ống có sẵn
+  const elbowEnd = (pt, u, A, incoming) => {
+    const w = upOf(u), a = incoming ? pt.clone().addScaledVector(u, -A) : pt.clone().addScaledVector(w, A), b = incoming ? pt.clone().addScaledVector(w, A) : pt.clone().addScaledVector(u, A);
+    add(new T.Mesh(new T.TubeGeometry(new T.QuadraticBezierCurve3(a, pt.clone(), b), 24, D / 2, 24, false), mat.steel));
+    const st0 = pt.clone().addScaledVector(w, A); cyl(st0, st0.clone().addScaledVector(w, D * 2), D / 2, mat.steel);
+  };
+  if (isElb(rt.A)) elbowEnd(P[0], u0, trimAt(0), false);
+  if (isElb(rt.B)) elbowEnd(PB, un, trimAt(n), true);
   const equip = (pt, out) => {   // out: hướng từ ống đi vào thiết bị
     flg(pt.clone().addScaledVector(out, 8), out, 16);
     const bx = add(new T.Mesh(new T.BoxGeometry(D * 2.6, D * 2.6, D * 2.6), mat.pump)); bx.position.copy(pt).addScaledVector(out, 16 + D * 1.3);
   };
   if (rt.A.t === 'cTee') { const h = Math.abs(u0.y) > .9 ? new T.Vector3(1, 0, 0) : new T.Vector3().crossVectors(u0, Y).normalize(); cyl(P[0].clone().addScaledVector(h, -D * 3), P[0].clone().addScaledVector(h, D * 3), D * .62, mat.steel); }
   else if (rt.A.t === 'flg') equip(P[0], u0.clone().negate());
-  else cyl(P[0], P[0].clone().addScaledVector(u0, -D * 1.5), D / 2, mat.steel);
+  else if (rt.A.t === 'exist') cyl(P[0], P[0].clone().addScaledVector(u0, -D * 1.5), D / 2, mat.steel);
   if (rt.B.t === 'flg') equip(PB, un); else if (rt.B.t === 'exist') cyl(PB, PB.clone().addScaledVector(un, D * 1.5), D / 2, mat.steel);
   [['A', P[0]], ['B', PB]].forEach(([t, p]) => { const lb = add(label3D(t, '#ffffff', fs * 1.2)); lb.position.copy(p).add(new T.Vector3(0, D * 2.2, 0)); });
   // lưới sàn để định hướng
   const bb = new T.Box3().setFromObject(G), size = bb.getSize(new T.Vector3()), span = Math.max(size.x, size.y, size.z, 6 * D);
   const grid = new T.GridHelper(span * 1.6, 16, 0x7d8c99, 0x3a4752); grid.material.transparent = true; grid.material.opacity = .45;
   grid.position.set((bb.min.x + bb.max.x) / 2, bb.min.y - D, (bb.min.z + bb.max.z) / 2); G.add(grid);
-  if (!v3.framed) { v3.target.copy(bb.getCenter(new T.Vector3())); v3.radius = span * 1.9; v3.framed = true; }
+  const fit = () => span * 1.35 / Math.min(1, (v3.box.clientWidth || 1) / (v3.box.clientHeight || 1));   // khung dọc trên điện thoại cần lùi xa hơn
+  v3.fit = fit;
+  if (!v3.framed) { v3.target.copy(bb.getCenter(new T.Vector3())); v3.radius = fit(); v3.framed = true; }
   v3.span = span; v3.center = bb.getCenter(new T.Vector3());
   v3.scene.background = new T.Color(getComputedStyle(document.documentElement).getPropertyValue('--stage').trim() || '#232c34');
   size3D();
 }
 function setView3(k) {
   const V = { iso: [.75, 1.05], front: [0, Math.PI / 2], top: [0, .06], side: [Math.PI / 2, Math.PI / 2] }[k];
-  v3.theta = V[0]; v3.phi = V[1]; if (v3.center) { v3.target.copy(v3.center); v3.radius = v3.span * 1.9; } place3D();
+  v3.theta = V[0]; v3.phi = V[1]; if (v3.center) { v3.target.copy(v3.center); v3.radius = v3.fit(); } place3D();
 }
-async function show3D(on) {
-  v3.on = on;
-  $('rt-2d').setAttribute('aria-pressed', !on); $('rt-3d').setAttribute('aria-pressed', on);
-  $('rt3d-wrap').hidden = !on; $('fig-rt').style.display = on ? 'none' : '';   // svg không có thuộc tính hidden $('fig-rt-cap').hidden = on; $('rt2d-opts').hidden = on;
-  if (!on) return;
+// một khung 3D dùng chung, chuyển sang tab nào đang bật 3D
+const V3MODES = ['tuyen', 'lech', 'nhieu'];
+async function show3D(mode, on) {
+  V3MODES.forEach(m => {
+    const me = on && m === mode;
+    document.querySelectorAll(`[data-v3m="${m}"]`).forEach(b => b.setAttribute('aria-pressed', String((b.dataset.v3on === '1') === me)));
+    $(m + '-2d').hidden = me;
+  });
+  const wrap = $('rt3d-wrap');
+  if (!on) { if (v3.mode === mode) { wrap.hidden = true; v3.mode = null; } return; }
+  $('slot-' + mode).appendChild(wrap); wrap.hidden = false; v3.mode = mode;
   try {
     const T = await loadThree();
     if (!v3.r) init3D(T);
-    v3.framed = false; renderRoute();
+    v3.framed = false; rebuild3D();
   } catch (e) { $('rt3d-msg').textContent = 'Không tải được phần 3D. Cần có mạng ở lần mở đầu tiên, sau đó dùng được khi mất mạng.'; }
+}
+function rebuild3D() {
+  if (!v3.scene || !v3.mode) return;
+  const s = S();
+  if (v3.mode === 'nhieu') { build3D(s, st.route, calcRoute(s, st.route)); return; }
+  const X = new v3.T.Vector3(1, 0, 0);
+  if (v3.mode === 'tuyen') {
+    const els = [st.A, ...st.mid, st.B], meas = num($('meas')) || 0;
+    build3D(s, { A: st.A, B: st.B, legs: [{ len: meas, items: st.mid }] }, { legs: [{ els, r: calcRun(s, els, meas) }] }, { vecs: [X] });
+    return;
+  }
+  // lệch tâm 2 co: ống 1 → co 1 → ống xiên → co 2 → ống 2
+  const r = v3.off; if (!r || r.A == null || r.err) return;
+  const T = v3.T, o = new T.Vector3(0, r.Y, -r.X).normalize(), ar = rad(r.ang);
+  const d2 = X.clone().multiplyScalar(Math.cos(ar)).addScaledVector(o, Math.sin(ar)).normalize();
+  const ext = r.Lm != null && r.diff > 1 ? r.diff : 0, node = { t: r.ang === 45 ? 'cE45' : 'cE90', custom: r.A };
+  const legs = [
+    { els: ext ? [{ t: 'exist' }, { t: 'pipe' }, node] : [{ t: 'exist' }, node], r: { cut: ext ? r.piece : 0 } },
+    { els: [node, { t: 'pipe' }, node], r: { cut: r.cut } },
+    { els: [node, { t: 'exist' }], r: { cut: 0 } }];
+  build3D(s, { A: { t: 'exist' }, B: { t: 'exist' }, legs: [{ len: r.E + ext, items: [] }, { len: r.travel, items: [] }, { len: r.E, items: [] }] },
+    { legs }, { vecs: [X, d2, X], trims: [0, r.A, r.A, 0] });
 }
 
 function renderAll() { fillPipe(); renderList(); renderRouteForm(); renderRun(); renderOffset(); renderRoute(); renderRef(); save(); }
@@ -1431,7 +1538,7 @@ $('dn').addEventListener('change', e => { st.i = +e.target.value; st.od = st.wal
 $('od').addEventListener('input', e => { st.od = num(e.target) || null; renderCalcPipe(); });
 $('wall').addEventListener('input', e => { st.wall = num(e.target) || null; renderCalcPipe(); });
 function renderCalcPipe() { const s = S(), m = MAT[st.mat]; $('kgm').value = m.steel ? (0.02466 * s.wall * (s.od - s.wall)).toFixed(2).replace('.', ',') : '—'; renderList(); renderCalc(); }
-['pg', 'pw', 'ps', 'pc', 'meas'].forEach(id => $(id).addEventListener('input', renderCalc));
+['pg', 'pw', 'ps', 'pc', 'pt', 'pfm', 'meas'].forEach(id => $(id).addEventListener('input', renderCalc));
 ['o-ang', 'o-X', 'o-Y', 'o-pos', 'o-L'].forEach(id => $(id).addEventListener('input', () => { renderOffset(); save(); }));
 $('run').addEventListener('change', e => {
   const a = e.target.dataset.anchor;
@@ -1494,8 +1601,7 @@ $('route').addEventListener('click', e => {
   else return;
   renderRouteForm(); renderRoute(); save();
 });
-$('rt-2d').addEventListener('click', () => show3D(false));
-$('rt-3d').addEventListener('click', () => show3D(true));
+document.querySelectorAll('[data-v3m]').forEach(b => b.addEventListener('click', () => show3D(b.dataset.v3m, b.dataset.v3on === '1')));
 document.querySelectorAll('[data-view3]').forEach(b => b.addEventListener('click', () => setView3(b.dataset.view3)));
 $('rt-view').value = st.route.view || 'auto';
 $('rt-view').addEventListener('change', e => { st.route.view = e.target.value; renderRoute(); save(); });
@@ -1530,8 +1636,17 @@ initStore();
 </script>
 
 <script>
-if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+// báo cho thợ biết app đã lưu về máy, dùng được khi mất mạng
+(function () {
+  const foot = document.querySelector('.foot'), tag = document.createElement('span');
+  if (foot) { foot.appendChild(document.createElement('br')); foot.appendChild(tag); }
+  const say = (t, ok) => { tag.textContent = t; tag.style.color = ok ? 'var(--accent)' : ''; tag.style.fontWeight = ok ? '700' : ''; };
+  if (!('serviceWorker' in navigator)) { say('Trình duyệt này không lưu app để dùng khi mất mạng. Dùng Chrome (Android) hoặc Safari (iPhone).'); return; }
+  say('Đang lưu app về máy…');
+  navigator.serviceWorker.register('./sw.js').catch(() => say('Chưa lưu được app về máy. Mở lại khi có mạng.'));
+  navigator.serviceWorker.ready.then(() => caches.keys()).then(k => say(k.some(x => x.startsWith('cat-ong-utc-')) ? '✓ Đã lưu trên máy: dùng được khi mất mạng' : 'Đang lưu app về máy…', true));
+})();
 </script>
-<!-- build 202610251523 -->
+<!-- build 202610251552 -->
 </body>
 </html>
