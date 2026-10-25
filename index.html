@@ -780,7 +780,7 @@ function renderRun() {
   texts.tuyen = r.err ? '' : `${pj ? 'DỰ ÁN ' + pj.name + '\n' : ''}CẮT ỐNG DN${DN[s.i]} ${MAT[s.mat].name}, nối ${FAM[s.fam]}\nA: ${NAME[st.A.t]} → B: ${NAME[st.B.t]}\nKhoảng đo: ${mm(meas)} mm\n`
     + r.lines.map(l => `${lineLabel(l)}: ${sg(l.v)}`).join('\n') + `\n=> ỐNG CẮT: ${mm(r.cut)} mm`
     + (r.nf ? `\n=> CÓ BÍCH, MẶT BÍCH → MẶT BÍCH: ${mm(r.spool)} mm (${s.fm === 'slip' ? 'ống lùi ' + mm(s.s) : 'dày bích ' + mm(s.tf)} × ${r.nf})` : '');
-  if (v3.mode === 'tuyen') rebuild3D();
+  if (v3.mode === 'tuyen') schedule3D();
 }
 
 function renderOffset() {
@@ -789,7 +789,7 @@ function renderOffset() {
   $('o-Lrow').hidden = pos === 'none';
   const Lm = pos === 'none' || !isFinite(Lv) ? null : pos === 'over' ? -Lv : Lv;
   const r = calcOffset(s, av === 'auto' ? 'auto' : parseFloat(av), X, Y, Lm), el = $('r-lech'), svg = $('fig-o');
-  v3.off = Object.assign({ X, Y }, r); if (v3.mode === 'lech') rebuild3D();
+  v3.off = Object.assign({ X, Y }, r); if (v3.mode === 'lech') schedule3D();
   if (r.err && r.A == null) { el.innerHTML = '<h2>Kết quả</h2><div class="note bad">' + r.err + '</div>'; svg.innerHTML = ''; texts.lech = ''; return; }
   const ang = r.ang, angT = String(ang).replace('.', ',') + '°';
   const hasL = r.Lm != null, d = hasL ? r.diff : 0;
@@ -956,7 +956,7 @@ function renderRouteForm() {
 function renderRoute() {
   const s = S(), rt = st.route, R = calcRoute(s, rt), el = $('r-nhieu');
   drawRoute(s, rt, R);
-  if (v3.mode === 'nhieu') build3D(s, rt, R);
+  if (v3.mode === 'nhieu') schedule3D();
   let html = '<h2>Các ống cần cắt</h2>';
   R.errs.forEach(e => html += `<div class="note bad">${e}</div>`);
   const pieces = [];
@@ -1083,8 +1083,10 @@ function loadThree() {
 }
 function init3D(T) {
   const box = $('rt3d');
-  const r = new T.WebGLRenderer({ antialias: true });
-  r.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+  // điện thoại màn hình nét (dpr ≥ 2) đã đủ mịn: tắt khử răng cưa, giới hạn độ phân giải để xoay mượt
+  const dpr = devicePixelRatio || 1;
+  const r = new T.WebGLRenderer({ antialias: dpr < 2, powerPreference: 'high-performance' });
+  r.setPixelRatio(Math.min(dpr, 1.6));
   box.appendChild(r.domElement);
   const scene = new T.Scene();
   scene.add(new T.HemisphereLight(0xffffff, 0x445566, .85));
@@ -1092,32 +1094,52 @@ function init3D(T) {
   const back = new T.DirectionalLight(0xffffff, .3); back.position.set(-1.5, .5, -1); scene.add(back);
   const cam = new T.PerspectiveCamera(40, 1, 10, 1e6);
   Object.assign(v3, { T, r, scene, cam, box, group: null, target: new T.Vector3(), theta: .75, phi: 1.05, radius: 5000 });
-  const M = (c, m, ro) => new T.MeshStandardMaterial({ color: c, metalness: m, roughness: ro });
+  // vật liệu Phong nhẹ hơn nhiều so với PBR trên GPU điện thoại
+  const M = (c, m, ro) => new T.MeshPhongMaterial({ color: c, shininess: Math.round((1 - ro) * 90), specular: m > .3 ? 0x777777 : 0x222222 });
   v3.mat = { steel: M(0xb3bec7, .65, .32), cut: M(0xff7a3d, .15, .5), kp: M(0xffb48a, .1, .6), valve: M(0x2f5d9a, .35, .42),
     rubber: M(0x1e1e1e, 0, .85), lever: M(0xd9561a, .2, .5), pump: M(0x2f7a64, .3, .5), dark: M(0x5f6c77, .6, .4) };
   // xoay, phóng to, di chuyển bằng ngón tay / chuột
   const pts = new Map(); let last = null;
   const el = r.domElement;
   el.addEventListener('contextmenu', e => e.preventDefault());
-  el.addEventListener('pointerdown', e => { el.setPointerCapture(e.pointerId); pts.set(e.pointerId, { x: e.clientX, y: e.clientY, b: e.button }); last = null; });
-  const end = e => { pts.delete(e.pointerId); last = null; };
+  v3.vel = { t: 0, p: 0 }; v3.drag = false; v3.lastMove = 0;
+  el.addEventListener('pointerdown', e => { el.setPointerCapture(e.pointerId); pts.set(e.pointerId, { x: e.clientX, y: e.clientY, b: e.button }); last = null; v3.drag = true; v3.vel = { t: 0, p: 0 }; });
+  const end = e => {
+    pts.delete(e.pointerId); last = null;
+    if (pts.size === 0) { v3.drag = false; if (performance.now() - v3.lastMove > 80) v3.vel = { t: 0, p: 0 }; req3D(); }
+  };
   el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+  // sự kiện chạm đến dồn dập: chỉ cộng dồn góc, vẽ lại 1 lần mỗi khung hình
   el.addEventListener('pointermove', e => {
     if (!pts.has(e.pointerId)) return;
     const p = pts.get(e.pointerId), dx = e.clientX - p.x, dy = e.clientY - p.y;
     p.x = e.clientX; p.y = e.clientY;
     if (pts.size === 1) {
       if (p.b === 2 || e.shiftKey) pan3D(dx, dy);
-      else { v3.theta -= dx * .008; v3.phi = Math.min(Math.PI - .05, Math.max(.05, v3.phi - dy * .008)); }
+      else { const dt = -dx * .008, dp = -dy * .008; v3.theta += dt; v3.phi = clampPhi(v3.phi + dp); const cap = x => Math.max(-.06, Math.min(.06, x));   // vuốt mạnh cũng không quay loạn
+        v3.vel = { t: cap(.6 * dt + .4 * v3.vel.t), p: cap(.6 * dp + .4 * v3.vel.p) }; v3.lastMove = performance.now(); }
     } else if (pts.size === 2) {
       const [a, b] = [...pts.values()], d = Math.hypot(a.x - b.x, a.y - b.y), m = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
       if (last) { v3.radius *= last.d / Math.max(d, 1); pan3D(m.x - last.m.x, m.y - last.m.y); }
-      last = { d, m };
+      last = { d, m }; v3.vel = { t: 0, p: 0 };
     }
-    place3D();
+    req3D();
   });
-  el.addEventListener('wheel', e => { e.preventDefault(); v3.radius *= Math.exp(e.deltaY * .0012); place3D(); }, { passive: false });
+  el.addEventListener('wheel', e => { e.preventDefault(); v3.radius *= Math.exp(e.deltaY * .0012); req3D(); }, { passive: false });
   window.addEventListener('resize', () => { if (v3.on) size3D(); });
+}
+const clampPhi = p => Math.min(Math.PI - .05, Math.max(.05, p));
+// vẽ theo khung hình; buông tay thì hình còn trôi nhẹ rồi dừng
+function req3D() { if (!v3.raf) v3.raf = requestAnimationFrame(frame3D); }
+function frame3D() {
+  v3.raf = 0;
+  let more = false;
+  if (!v3.drag && (Math.abs(v3.vel.t) > 1e-4 || Math.abs(v3.vel.p) > 1e-4)) {
+    v3.theta += v3.vel.t; v3.phi = clampPhi(v3.phi + v3.vel.p);
+    v3.vel.t *= .9; v3.vel.p *= .9; more = true;
+  }
+  place3D();
+  if (more) req3D();
 }
 function pan3D(dx, dy) {
   const T = v3.T, c = v3.cam, k = v3.radius * .0018;
@@ -1155,7 +1177,7 @@ function build3D(s, rt, R, opts) {
   const add = m => { G.add(m); return m; };
   const cyl = (a, b, r1, m, r2) => {
     const v = new T.Vector3().subVectors(b, a), L = v.length(); if (L < .1) return null;
-    const ms = add(new T.Mesh(new T.CylinderGeometry(r2 == null ? r1 : r2, r1, L, 28), m));
+    const ms = add(new T.Mesh(new T.CylinderGeometry(r2 == null ? r1 : r2, r1, L, 18), m));
     ms.position.copy(a).addScaledVector(v, .5); ms.quaternion.setFromUnitVectors(Y, v.normalize()); return ms;
   };
   const upOf = u => { const w = Math.abs(u.y) > .9 ? new T.Vector3(0, 0, 1) : Y.clone(); return w.addScaledVector(u, -w.dot(u)).normalize(); };
@@ -1186,7 +1208,7 @@ function build3D(s, rt, R, opts) {
       const w = new T.Vector3().copy(u).multiplyScalar(.6).addScaledVector(up, -.8).normalize();
       cyl(c, at(w, D * 1.5), D * .42, mat.valve); flg(at(w, D * 1.5), w, 14);
     } else if (cat === 'flex') {
-      const sp = add(new T.Mesh(new T.SphereGeometry(1, 32, 20), mat.rubber));
+      const sp = add(new T.Mesh(new T.SphereGeometry(1, 22, 14), mat.rubber));
       sp.position.copy(c); sp.quaternion.setFromUnitVectors(Y, u); sp.scale.set(D * .82, Math.max(L / 2 - t, D * .2), D * .82);
     } else if (cat === 'tee') {
       cyl(a, b, D / 2, mat.steel); cyl(c, at(up, -D * 1.3), D / 2, mat.steel);
@@ -1213,7 +1235,7 @@ function build3D(s, rt, R, opts) {
   for (let j = 1; j < n; j++) {
     const A = trimAt(j), u1 = LV(j - 1), u2 = LV(j);
     const curve = new T.QuadraticBezierCurve3(P[j].clone().addScaledVector(u1, -A), P[j].clone(), P[j].clone().addScaledVector(u2, A));
-    add(new T.Mesh(new T.TubeGeometry(curve, 24, D / 2, 24, false), mat.steel));
+    add(new T.Mesh(new T.TubeGeometry(curve, 20, D / 2, 14, false), mat.steel));
   }
   // từng đoạn: ống nền, rồi ống cắt, van, khớp đúng vị trí
   rt.legs.forEach((lg, k) => {
@@ -1242,7 +1264,7 @@ function build3D(s, rt, R, opts) {
   // mốc là tâm co: vẽ co quay lên và một đoạn ống có sẵn
   const elbowEnd = (pt, u, A, incoming) => {
     const w = upOf(u), a = incoming ? pt.clone().addScaledVector(u, -A) : pt.clone().addScaledVector(w, A), b = incoming ? pt.clone().addScaledVector(w, A) : pt.clone().addScaledVector(u, A);
-    add(new T.Mesh(new T.TubeGeometry(new T.QuadraticBezierCurve3(a, pt.clone(), b), 24, D / 2, 24, false), mat.steel));
+    add(new T.Mesh(new T.TubeGeometry(new T.QuadraticBezierCurve3(a, pt.clone(), b), 20, D / 2, 14, false), mat.steel));
     const st0 = pt.clone().addScaledVector(w, A); cyl(st0, st0.clone().addScaledVector(w, D * 2), D / 2, mat.steel);
   };
   if (isElb(rt.A)) elbowEnd(P[0], u0, trimAt(0), false);
@@ -1288,6 +1310,8 @@ async function show3D(mode, on) {
     v3.framed = false; rebuild3D();
   } catch (e) { $('rt3d-msg').textContent = 'Không tải được phần 3D. Cần có mạng ở lần mở đầu tiên, sau đó dùng được khi mất mạng.'; }
 }
+// gõ số liên tục thì đợi ngừng tay mới dựng lại cảnh 3D
+function schedule3D() { clearTimeout(v3.timer); v3.timer = setTimeout(rebuild3D, 180); }
 function rebuild3D() {
   if (!v3.scene || !v3.mode) return;
   const s = S();
@@ -1647,6 +1671,6 @@ initStore();
   navigator.serviceWorker.ready.then(() => caches.keys()).then(k => say(k.some(x => x.startsWith('cat-ong-utc-')) ? '✓ Đã lưu trên máy: dùng được khi mất mạng' : 'Đang lưu app về máy…', true));
 })();
 </script>
-<!-- build 202610251552 -->
+<!-- build 202610251603 -->
 </body>
 </html>

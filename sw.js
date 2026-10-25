@@ -1,6 +1,6 @@
 // Cắt Ống UTC: lưu sẵn ứng dụng trên máy để mở được khi không có mạng.
-// build.ps1 thay 202610251552 mỗi lần đóng gói, máy anh em tự lấy bản mới khi có mạng.
-const CACHE = 'cat-ong-utc-202610251552';
+// build.ps1 thay 202610251603 mỗi lần đóng gói, máy anh em tự lấy bản mới khi có mạng.
+const CACHE = 'cat-ong-utc-202610251603';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 // tải thêm nếu được (thư viện 3D, phông chữ); thiếu thì app vẫn chạy
 const EXTRA = ['https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',
