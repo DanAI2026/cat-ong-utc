@@ -1439,12 +1439,17 @@ function build3D(s, rt, R, opts) {
     if (j >= n) return isElb(rt.B) ? elLen(rt.B, s) || D : 0;
     const a = turnAng(rt.legs[j - 1].dir, rt.legs[j].dir); return fitLen(s, a === 45 ? 'e45' : 'e90') || D;
   };
-  // co uốn tại các nút
-  for (let j = 1; j < n; j++) {
-    const A = trimAt(j), u1 = LV(j - 1), u2 = LV(j);
-    const curve = new T.QuadraticBezierCurve3(P[j].clone().addScaledVector(u1, -A), P[j].clone(), P[j].clone().addScaledVector(u2, A));
-    add(new T.Mesh(new T.TubeGeometry(curve, 20, D / 2, 14, false), mat.steel));
-  }
+  // co uốn: cung tròn thật, bán kính R = A / tan(θ/2), tiếp tuyến với 2 ống tại 2 đầu co
+  const elbow = (Pn, u1, u2, A) => {
+    const th = Math.acos(Math.max(-1, Math.min(1, u1.dot(u2))));
+    if (th < .01) return;
+    const R = A / Math.tan(th / 2), nrm = u2.clone().addScaledVector(u1, -u1.dot(u2)).normalize();
+    const T1 = Pn.clone().addScaledVector(u1, -A), C = T1.clone().addScaledVector(nrm, R);
+    const curve = new T.Curve();
+    curve.getPoint = (t, out) => (out || new T.Vector3()).copy(C).addScaledVector(nrm, -R * Math.cos(t * th)).addScaledVector(u1, R * Math.sin(t * th));
+    add(new T.Mesh(new T.TubeGeometry(curve, Math.max(8, Math.round(th / .12)), D / 2, 16, false), mat.steel));
+  };
+  for (let j = 1; j < n; j++) elbow(P[j], LV(j - 1), LV(j), trimAt(j));
   // từng đoạn: ống nền, rồi ống cắt, van, khớp đúng vị trí
   rt.legs.forEach((lg, k) => {
     const u = LV(k), L = R.legs[k], els = L.els, A0 = trimAt(k), A1 = trimAt(k + 1);
@@ -1454,8 +1459,10 @@ function build3D(s, rt, R, opts) {
       const len = el.t === 'pipe' ? (L.r.err ? 0 : L.r.cut) : (elLen(el, s) || 0);
       const a = P[k].clone().addScaledVector(u, pos), b = P[k].clone().addScaledVector(u, pos + len);
       if (el.t === 'pipe' && len > 0) {
-        cyl(a, b, D / 2 * 1.01, mat.cut);
-        const lb = add(label3D('cắt ' + mm(len), '#ff9a66', fs)); lb.position.copy(a.clone().lerp(b, .5)).addScaledVector(upOf(u), D * 1.25);
+        cyl(a, b, D / 2 * 1.01, el.ext ? mat.kp : mat.cut);
+        // đoạn chẵn ghi phía trên, đoạn lẻ ghi phía dưới để 2 nhãn cạnh nhau không đè
+        const lb = add(label3D((el.ext ? 'thêm ' : 'cắt ') + mm(len), el.ext ? '#ffc8a6' : '#ff9a66', fs));
+        lb.position.copy(a.clone().lerp(b, .5)).addScaledVector(upOf(u), (k % 2 ? -1 : 1) * (D * .75 + fs * .7));
       } else if (el.t === 'kpipe' && len > 0) cyl(a, b, D / 2 * 1.01, mat.kp);
       else if (i > 0 && i < els.length - 1 && len > 0) {
         let cat = PIC[el.t] || el.t;
@@ -1465,14 +1472,14 @@ function build3D(s, rt, R, opts) {
       pos += len;
       if (i < els.length - 1) pos += joint(el, els[i + 1], s).v;
     });
-    const lb = add(label3D(`${k + 1}: ${mm(lg.len)}`, '#c9d3db', fs * .8)); lb.position.copy(P[k].clone().lerp(P[k + 1], .5)).addScaledVector(upOf(u), -D * 1.4);
+    if (lg.len > fs * 3) { const lb = add(label3D(`${k + 1}: ${mm(lg.len)}`, '#c9d3db', fs * .75)); lb.position.copy(P[k].clone().lerp(P[k + 1], .5)).addScaledVector(upOf(u), (k % 2 ? 1 : -1) * (D * .75 + fs * .6)); }
   });
   // mốc A và B
   const u0 = LV(0), un = LV(n - 1), PB = P[n];
   // mốc là tâm co: vẽ co quay lên và một đoạn ống có sẵn
   const elbowEnd = (pt, u, A, incoming) => {
-    const w = upOf(u), a = incoming ? pt.clone().addScaledVector(u, -A) : pt.clone().addScaledVector(w, A), b = incoming ? pt.clone().addScaledVector(w, A) : pt.clone().addScaledVector(u, A);
-    add(new T.Mesh(new T.TubeGeometry(new T.QuadraticBezierCurve3(a, pt.clone(), b), 20, D / 2, 14, false), mat.steel));
+    const w = upOf(u);
+    if (incoming) elbow(pt, u, w, A); else elbow(pt, w.clone().negate(), u, A);
     const st0 = pt.clone().addScaledVector(w, A); cyl(st0, st0.clone().addScaledVector(w, D * 2), D / 2, mat.steel);
   };
   if (isElb(rt.A)) elbowEnd(P[0], u0, trimAt(0), false);
@@ -1485,7 +1492,8 @@ function build3D(s, rt, R, opts) {
   else if (rt.A.t === 'flg') equip(P[0], u0.clone().negate());
   else if (rt.A.t === 'exist') cyl(P[0], P[0].clone().addScaledVector(u0, -D * 1.5), D / 2, mat.steel);
   if (rt.B.t === 'flg') equip(PB, un); else if (rt.B.t === 'exist') cyl(PB, PB.clone().addScaledVector(un, D * 1.5), D / 2, mat.steel);
-  [['A', P[0]], ['B', PB]].forEach(([t, p]) => { const lb = add(label3D(t, '#ffffff', fs * 1.2)); lb.position.copy(p).add(new T.Vector3(0, D * 2.2, 0)); });
+  // nhãn mốc đặt ở phía ngoài 2 đầu tuyến, không chồng lên nhãn số đo
+  [['A', P[0], u0.clone().negate()], ['B', PB, un]].forEach(([t, p, out]) => { const lb = add(label3D(t, '#ffffff', fs * 1.1)); lb.position.copy(p).addScaledVector(out, D * 1.9 + fs * .6); });
   // lưới sàn để định hướng
   const bb = new T.Box3().setFromObject(G), size = bb.getSize(new T.Vector3()), span = Math.max(size.x, size.y, size.z, 6 * D);
   const grid = new T.GridHelper(span * 1.6, 16, 0x7d8c99, 0x3a4752); grid.material.transparent = true; grid.material.opacity = .45;
@@ -1547,7 +1555,7 @@ function rebuild3D() {
     const sd1 = pp ? r.s1 : { d: r.ext, piece: r.piece }, sd2 = pp ? r.s2 : null;
     const leg = (sd, E, first) => {
       const ext = sd && sd.d > 1 ? sd.d : 0, node = first ? n1 : n2;
-      const els = ext ? (first ? [{ t: 'exist' }, { t: 'pipe' }, node] : [node, { t: 'pipe' }, { t: 'exist' }]) : (first ? [{ t: 'exist' }, node] : [node, { t: 'exist' }]);
+      const els = ext ? (first ? [{ t: 'exist' }, { t: 'pipe', ext: true }, node] : [node, { t: 'pipe', ext: true }, { t: 'exist' }]) : (first ? [{ t: 'exist' }, node] : [node, { t: 'exist' }]);
       return { len: E + ext, el: { els, r: { cut: ext ? sd.piece : 0 } } };
     };
     const L1 = leg(sd1, E1, true), L3 = leg(sd2, E2, false), mid = pp ? r.H : r.V;
@@ -1560,8 +1568,10 @@ function rebuild3D() {
   const T = v3.T, o = new T.Vector3(0, r.Y, -r.X).normalize(), ar = rad(r.ang);
   const d2 = X.clone().multiplyScalar(Math.cos(ar)).addScaledVector(o, Math.sin(ar)).normalize();
   const ext = r.Lm != null && r.diff > 1 ? r.diff : 0, node = { t: r.ang === 45 ? 'cE45' : 'cE90', custom: r.A };
+  // lệch ngang nằm trên mặt bằng: mở góc nhìn từ trên chéo xuống để thấy rõ độ lệch
+  if (!v3.framed) { if (Math.abs(r.Y) < Math.abs(r.X)) { v3.theta = .3; v3.phi = .62; } else { v3.theta = .75; v3.phi = 1.25; } }
   const legs = [
-    { els: ext ? [{ t: 'exist' }, { t: 'pipe' }, node] : [{ t: 'exist' }, node], r: { cut: ext ? r.piece : 0 } },
+    { els: ext ? [{ t: 'exist' }, { t: 'pipe', ext: true }, node] : [{ t: 'exist' }, node], r: { cut: ext ? r.piece : 0 } },
     { els: [node, { t: 'pipe' }, node], r: { cut: r.cut } },
     { els: [node, { t: 'exist' }], r: { cut: 0 } }];
   build3D(s, { A: { t: 'exist' }, B: { t: 'exist' }, legs: [{ len: r.E + ext, items: [] }, { len: r.travel, items: [] }, { len: r.E, items: [] }] },
@@ -1947,6 +1957,6 @@ initStore();
   navigator.serviceWorker.ready.then(() => caches.keys()).then(k => say(k.some(x => x.startsWith('cat-ong-utc-')) ? '✓ Đã lưu trên máy: dùng được khi mất mạng' : 'Đang lưu app về máy…', true));
 })();
 </script>
-<!-- build 202610261326 -->
+<!-- build 202610261342 -->
 </body>
 </html>
