@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Cắt Ống">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#1b2229" media="(prefers-color-scheme: dark)">
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
@@ -333,7 +333,7 @@ svg text{font-family:var(--f-num);fill:var(--ink)}
       <button class="btn" id="b-newproj">Dự án mới</button>
       <button class="btn ghost" id="b-additem">Thêm vật tư</button>
       <button class="btn ghost" id="b-export" hidden>Xuất file</button>
-      <label class="btn ghost" id="b-import" hidden style="display:inline-flex;align-items:center">Nhập file<input type="file" id="f-import" accept=".json,application/json" hidden></label>
+      <label class="btn ghost" id="b-import" hidden style="display:inline-flex;align-items:center">Nhập file<input type="file" id="f-import" accept=".json,application/json,text/plain" hidden></label>
     </div>
     <form id="f-proj" class="grid" hidden>
       <label class="f full"><span>Tên dự án</span><div class="inp"><input id="pj-name" class="txt" placeholder="VD: Phòng bơm tòa A"></div></label>
@@ -1362,11 +1362,17 @@ function shrinkImage(file, max) {
   });
 }
 // xuất / nhập toàn bộ vật tư ra file .json để gửi qua Zalo cho máy khác
-function exportLib() {
+async function exportLib() {
   const data = JSON.stringify({ app: 'cat-ong-utc', v: 1, exportedAt: new Date().toISOString(), projects: store.local.projects, items: store.local.items });
+  const name = 'vat-tu-cat-ong-' + new Date().toISOString().slice(0, 10) + '.json';
+  // iPhone và Android đời mới: mở bảng chia sẻ để gửi thẳng qua Zalo; iPhone cài app không tải file kiểu thường được
+  try {
+    const f = new File([data], name, { type: 'application/json' });
+    if (navigator.canShare && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f], title: 'Vật tư Cắt Ống UTC' }); return; }
+  } catch (e) { if (e && e.name === 'AbortError') return; }
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([data], { type: 'application/json' }));
-  a.download = 'vat-tu-cat-ong-' + new Date().toISOString().slice(0, 10) + '.json';
+  a.download = name;
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
@@ -1651,8 +1657,18 @@ if (document.querySelector('link[rel="manifest"]') && !matchMedia('(display-mode
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); ev = e; $('install').hidden = false; });
   $('install-b').addEventListener('click', async () => { if (!ev) return; ev.prompt(); try { await ev.userChoice; } catch (e) {} ev = null; $('install').hidden = true; });
   window.addEventListener('appinstalled', () => { $('install').hidden = true; });
-  if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
-    $('install-t').textContent = 'Cài lên iPhone: bấm nút Chia sẻ (ô vuông có mũi tên) ở thanh Safari, chọn "Thêm vào MH chính".';
+  const ua = navigator.userAgent;
+  const ios = /iphone|ipad|ipod/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);   // iPad đời mới báo là Mac
+  const inApp = /Zalo|FBAN|FBAV|FB_IAB|Instagram|Line\/|Messenger/i.test(ua);
+  if (inApp) {
+    $('install-t').textContent = ios
+      ? 'Đang mở trong Zalo/Facebook nên không cài được. Bấm nút ⋯ hoặc biểu tượng la bàn, chọn "Mở bằng Safari", rồi cài từ Safari.'
+      : 'Đang mở trong Zalo/Facebook nên không cài được. Bấm ⋮ ở góc trên, chọn "Mở bằng trình duyệt" (Chrome), rồi cài từ Chrome.';
+    $('install-b').hidden = true; $('install').hidden = false;
+  } else if (ios) {
+    $('install-t').textContent = /CriOS|FxiOS|EdgiOS/.test(ua)
+      ? 'Cài lên iPhone: bấm nút Chia sẻ, chọn "Thêm vào MH chính". Nếu không thấy mục này, mở link bằng Safari.'
+      : 'Cài lên iPhone: bấm nút Chia sẻ (ô vuông có mũi tên lên) ở thanh dưới Safari, kéo xuống chọn "Thêm vào MH chính", rồi bấm "Thêm".';
     $('install-b').hidden = true; $('install').hidden = false;
   }
 }
@@ -1671,6 +1687,6 @@ initStore();
   navigator.serviceWorker.ready.then(() => caches.keys()).then(k => say(k.some(x => x.startsWith('cat-ong-utc-')) ? '✓ Đã lưu trên máy: dùng được khi mất mạng' : 'Đang lưu app về máy…', true));
 })();
 </script>
-<!-- build 202610251603 -->
+<!-- build 202610261300 -->
 </body>
 </html>
