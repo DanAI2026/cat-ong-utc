@@ -146,6 +146,7 @@ svg text{font-family:var(--f-num);fill:var(--ink)}
 .seg button:focus-visible{outline:2px solid var(--accent)}
 #okind{display:grid;grid-template-columns:1fr 1fr}
 #okind button{height:auto;min-height:44px;padding:6px 8px;line-height:1.25}
+#okind button:last-child:nth-child(odd){grid-column:1/-1}
 .v3{width:100%;height:min(70vh,420px);border-radius:10px;overflow:hidden;background:var(--stage);touch-action:none;position:relative}
 .v3 canvas{display:block;width:100%!important;height:100%!important;cursor:grab}
 .leg{border:1.5px solid var(--line);border-radius:10px;padding:12px;display:grid;gap:10px;background:var(--sunk)}
@@ -283,11 +284,16 @@ svg text{font-family:var(--f-num);fill:var(--ink)}
     <h2>Lệch tâm bằng 2 co</h2>
     <div class="seg" role="group" aria-label="Kiểu nối" id="okind">
       <button type="button" data-ok="par" aria-pressed="true">Song song</button>
+      <button type="button" data-ok="e90" aria-pressed="false">Co 90° cùng cao độ</button>
       <button type="button" data-ok="perp" aria-pressed="false">2 co 90° vuông góc</button>
       <button type="button" data-ok="b45" aria-pressed="false">Co 90° + co 45°</button>
       <button type="button" data-ok="b45x" aria-pressed="false">Tới ống 3</button>
     </div>
     <p class="lead" id="o-lead"></p>
+    <div class="grid" id="ok-e90" hidden>
+      <label class="f"><span>Đầu ống 1 → tim ống 2 <small>(đo theo phương ống 1)</small></span><div class="inp"><input id="o-a2" inputmode="decimal" value="800"><i>mm</i></div></label>
+      <label class="f"><span>Đầu ống 2 → tim ống 1 <small>(đo theo phương ống 2)</small></span><div class="inp"><input id="o-b2" inputmode="decimal" value="600"><i>mm</i></div></label>
+    </div>
     <div class="grid" id="ok-perp" hidden>
       <label class="f full"><span>Chênh cao H giữa 2 tim ống</span><div class="inp"><input id="o-H" inputmode="decimal" value="1200"><i>mm</i></div></label>
       <label class="f"><span>Đầu ống 1 → tim ống 2 <small>(theo phương ống 1, để trống nếu chưa đo)</small></span><div class="inp"><input id="o-a" inputmode="decimal" value="600"><i>mm</i></div></label>
@@ -597,6 +603,16 @@ function calcPerp(S, H, a, b) {
   const side = m => m == null ? null : { m, d: m - E, piece: m - E > 1 ? m - E - px.v : null };
   return { kind: 'perp', A, pe, px, E, H, cut, s1: side(a), s2: side(b), err: cut <= 0 ? 'Chênh cao H quá nhỏ: 2 co 90° chạm nhau.' : null };
 }
+// 1 co 90°, 2 ống có sẵn cùng cao độ, vuông góc nhau trên mặt bằng; a, b: đầu ống có sẵn → tim ống kia
+function calcE90(S, a, b) {
+  if (!(a > 0 && b > 0)) return { err: 'Nhập 2 khoảng đo từ đầu mỗi ống tới tim ống kia.' };
+  const A = fitLen(S, 'e90');
+  if (A == null) return { err: 'Chưa có kích thước co 90° cho cỡ và kiểu nối này.' };
+  const pe = pipeEnd(famType(S.fam), S), px = pipeEnd('X', S), E = A + pe.v;
+  const side = m => ({ m, d: m - E, piece: m - E > 1 ? m - E - px.v : null });
+  const s1 = side(a), s2 = side(b);
+  return { kind: 'e90', A, pe, px, E, s1, s2, cut: 0, err: null };
+}
 // co 90° rồi co 45°: ống 1 ngang, đoạn đứng, ống 2 xiên 45° đi xuống cùng chiều ống 1; co 45° hàn thẳng vào đầu ống 2
 function calcB45(S, dx, dy) {
   if (!(dx > 0 && dy > 0)) return { err: 'Nhập khoảng ngang và chênh cao tới đầu ống 2.' };
@@ -716,7 +732,7 @@ try {
 } catch (e) {}
 st.i = DN.indexOf(st.dnv); if (st.i < 0) { st.dnv = 150; st.i = DN.indexOf(150); }
 if (!MAT[st.mat]) st.mat = 'gi';
-function save() { try { st.dnv = DN[st.i]; const d = Object.assign({}, st, { inputs: {} }); ['pg', 'pw', 'ps', 'pc', 'pt', 'pfm', 'meas', 'o-ang', 'o-X', 'o-Y', 'o-pos', 'o-L', 'o-H', 'o-a', 'o-b', 'o-dx', 'o-dy', 'o-p3', 'o-dx3', 'o-dy3'].forEach(k => d.inputs[k] = $(k).value); localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} }
+function save() { try { st.dnv = DN[st.i]; const d = Object.assign({}, st, { inputs: {} }); ['pg', 'pw', 'ps', 'pc', 'pt', 'pfm', 'meas', 'o-ang', 'o-X', 'o-Y', 'o-pos', 'o-L', 'o-H', 'o-a', 'o-b', 'o-a2', 'o-b2', 'o-dx', 'o-dy', 'o-p3', 'o-dx3', 'o-dy3'].forEach(k => d.inputs[k] = $(k).value); localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} }
 if (st.inputs) Object.keys(st.inputs).forEach(k => { if ($(k)) $(k).value = st.inputs[k]; });
 lib.pid = st.pid;
 if (!st.route || !st.route.legs) st.route = defRoute();
@@ -874,6 +890,8 @@ function renderRun() {
 const OKIND = {
   par: ['Hai ống có sẵn song song, lệch nhau, chưa lắp co. Đo độ lệch giữa 2 tim ống và khoảng L giữa 2 đầu ống. Tool ra đoạn ống giữa 2 co, chỗ đặt tâm co, và cho biết phải nối thêm hay cắt bớt ống có sẵn bao nhiêu.',
     'Cách đo: căng dây hoặc dọi theo tim 2 ống, đo khoảng cách giữa 2 đường tim (lệch H), không đo mép ống. Ống lệch cả ngang lẫn đứng thì đo riêng X và Y.'],
+  e90: ['Hai ống có sẵn nằm cùng cao độ, vuông góc nhau khi nhìn từ trên xuống, nối bằng 1 co 90°. Tool ra đoạn ống phải nối thêm (hoặc cắt bớt) ở mỗi ống để lắp co vừa khít.',
+    'Cách đo: kéo dài tim ống 2 tới cắt tim ống 1, đo từ đầu ống 1 tới điểm đó; làm tương tự với ống 2. Hai ống phải cùng cao độ tim; nếu chênh cao thì dùng "2 co 90° vuông góc".'],
   perp: ['Ống 1 nằm ngang, co 90° đi xuống (hoặc lên), đoạn đứng, co 90° rẽ ngang ra ống 2 vuông góc với ống 1. Tool ra đoạn ống đứng cần cắt và phần phải nối thêm hay cắt bớt ở 2 ống có sẵn.',
     'Cách đo: H là chênh cao giữa 2 đường tim. Kéo dài tim ống 1 tới đúng phía trên tim ống 2, đo từ đầu ống 1 tới đó; làm tương tự với ống 2. Hai đường tim phải gặp nhau khi nhìn từ trên xuống; nếu lệch thì dùng tab Tuyến nhiều đoạn.'],
   b45: ['Ống 1 nằm ngang, co 90° đi xuống, đoạn đứng, co 45° ra ống 2 đang nằm xiên 45° (đi xuống, cùng chiều ống 1). Co 45° hàn thẳng vào đầu ống 2; phần chênh lệch được bù ở ống 1.',
@@ -884,14 +902,14 @@ const OKIND = {
 function setOKind(k) {
   st.okind = k;
   document.querySelectorAll('[data-ok]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.ok === k)));
-  ['par', 'perp', 'b45', 'b45x'].forEach(x => $('ok-' + x).hidden = x !== k);
+  ['par', 'e90', 'perp', 'b45', 'b45x'].forEach(x => $('ok-' + x).hidden = x !== k);
   $('o-lead').textContent = OKIND[k][0]; $('o-cap').textContent = OKIND[k][1];
 }
 // vẽ 2 kiểu mới trên mặt đứng, đúng tỉ lệ
 function renderOffset2(kind) {
   const s = S(), el = $('r-lech'), svg = $('fig-o'), D = s.od, k = Math.SQRT1_2;
   const opt = id => { const v = num($(id)); return isFinite(v) && String($(id).value).trim() !== '' ? v : null; };
-  const r = kind === 'perp' ? calcPerp(s, num($('o-H')), opt('o-a'), opt('o-b'))
+  const r = kind === 'e90' ? calcE90(s, num($('o-a2')), num($('o-b2'))) : kind === 'perp' ? calcPerp(s, num($('o-H')), opt('o-a'), opt('o-b'))
     : kind === 'b45' ? calcB45(s, num($('o-dx')), num($('o-dy'))) : calcB45x(s, num($('o-dx3')), num($('o-dy3')), $('o-p3').value);
   v3.off = Object.assign({ kind }, r); if (v3.mode === 'lech') schedule3D();
   if (r.err && r.cut == null) { el.innerHTML = '<h2>Kết quả</h2><div class="note bad">' + r.err + '</div>'; svg.innerHTML = ''; texts.lech = ''; return; }
@@ -907,7 +925,40 @@ function renderOffset2(kind) {
   let html = '<h2>Kết quả</h2>', txtc = '';
   const sideNote = (sd, name) => !sd ? '' : sd.d > 1 ? `<div class="note info">${name}: nối thêm 1 đoạn ống ${mm(sd.piece)} mm (mối nối ${r.px.txt}), rồi lắp co.</div>`
     : sd.d < -1 ? `<div class="note">${name}: cắt bớt ${mm(-sd.d)} mm ở đầu ống rồi lắp co.</div>` : `<div class="note info">${name}: vừa khít, lắp co thẳng vào đầu ống.</div>`;
-  if (kind === 'perp') {
+  if (kind === 'e90') {
+    // mặt bằng: ống 1 đi theo +x tới tâm co C, ống 2 đi theo +y từ C
+    const a = r.s1.m, b = r.s2.m, E = r.E, lead = Math.max(3 * D, 0.4 * Math.max(a, b));
+    fs = 0.045 * Math.max(a + lead + 3 * D, b + lead + 3 * D);
+    const leg = (sd, P, Q) => {             // P(t): điểm cách tâm co t mm theo phía ống
+      let o = pth([P(sd.m + lead), P(Math.max(sd.m, E))], 'var(--steel)', D);
+      if (sd.d > 1) o += pth([P(sd.m), P(E)], 'var(--accent)', D * .9);
+      if (sd.d < -1) o += pth([P(E), P(sd.m)], 'var(--bad-ink)', D * .9, .35);
+      return o + thin(Q(sd.m, -.65), Q(sd.m, .65), 0, 'var(--ink)');
+    };
+    const P1 = t => [-t, 0], Q1 = (t, w) => [-t, w * D], P2 = t => [0, t], Q2 = (t, w) => [w * D, t];
+    g += pth([[-E, 0], [0, 0], [0, E]], 'var(--steel)', D) + leg(r.s1, P1, Q1) + leg(r.s2, P2, Q2);
+    g += cl([[-a - lead, 0], [0, 0], [0, b + lead]]) + dot([0, 0]);
+    const ly = -(D / 2 + fs * 1.4), lx = D / 2 + fs * 1.4;
+    g += thin([-a, -D * .6], [-a, ly - fs * .4], '3 3') + thin([0, -D * .6], [0, ly - fs * .4], '3 3') + dim([-a, ly], [0, ly]) + txt([-a / 2, ly - fs * .9], 'ống 1 → tim ống 2: ' + mm(a));
+    g += thin([D * .6, b], [lx + fs * .4, b], '3 3') + thin([D * .6, 0], [lx + fs * .4, 0], '3 3') + dim([lx, 0], [lx, b]) + txt([lx + fs * 1.1, b / 2], 'ống 2 → tim ống 1: ' + mm(b), -90);
+    const lbl = (sd, p, rot) => sd.d > 1 ? txt(p, 'thêm ' + mm(sd.piece), rot, { b: 1, s: 1.1, c: 'var(--accent)' }) : sd.d < -1 ? txt(p, 'cắt bỏ ' + mm(-sd.d), rot, { b: 1, s: 1.1, c: 'var(--bad-ink)' }) : '';
+    g += lbl(r.s1, [-(Math.max(a, E) + E) / 2, D / 2 + fs * .9]) + lbl(r.s2, [-D / 2 - fs * .9, (Math.max(b, E) + E) / 2], -90);
+    g += txt([-a - lead, -D / 2 - fs * .9], 'ống 1', 0, { a: 'start', c: 'var(--muted)' }) + txt([-D / 2 - fs * .6, b + lead], 'ống 2', 0, { a: 'end', c: 'var(--muted)' });
+    x0 = -a - lead; x1 = lx + fs * 2.2; y0 = -(b + lead + fs); y1 = -ly + fs * 2;
+    const big = (sd, n) => sd.d > 1 ? `<div><span>Nối thêm ${n}</span><b>${mm(sd.piece)}<small>mm</small></b></div>`
+      : sd.d < -1 ? `<div><span>Cắt bớt ${n}</span><b style="color:var(--bad-ink)">${mm(-sd.d)}<small>mm</small></b></div>`
+      : `<div><span>${n}</span><b style="font-size:34px">Vừa khít</b></div>`;
+    html += `<div class="big">${big(r.s1, 'ống 1')}${big(r.s2, 'ống 2')}</div>`;
+    html += '<table class="kv">' + `<tr><td>Co 90° tâm → đầu${(projFit('e90', s.i) || {}).it ? ' (' + esc(projFit('e90', s.i).it.brand || projFit('e90', s.i).it.name) + ')' : ''}</td><td>${mm(r.A)}</td></tr>`
+      + `<tr><td>Tâm co → đầu ống nối vào co (gồm ${r.pe.txt})</td><td>${mm(r.E)}</td></tr>`
+      + [[r.s1, 'Ống 1'], [r.s2, 'Ống 2']].map(([sd, n]) => `<tr><td>${n}: đo tới tim ống kia</td><td>${mm(sd.m)}</td></tr>`
+        + (sd.d > 1 ? `<tr><td>${n}: mối nối với ống có sẵn (${r.px.txt})</td><td>${sg(r.px.v)}</td></tr><tr class="sum"><td>${n}: đoạn nối thêm</td><td>${mm(sd.piece)}</td></tr>`
+          : sd.d < -1 ? `<tr class="sum"><td>${n}: cắt bớt ở đầu ống</td><td>${mm(-sd.d)}</td></tr>` : `<tr class="sum"><td>${n}: vừa khít</td><td>0</td></tr>`)).join('') + '</table>';
+    html += sideNote(r.s1, 'Ống 1') + sideNote(r.s2, 'Ống 2');
+    [[r.s1, 'Ống 1'], [r.s2, 'Ống 2']].forEach(([sd, n]) => { if (sd.d > 1 && sd.piece < 100) html += `<div class="note">${n}: đoạn nối thêm dưới 100 mm, khó hàn. Nên cắt lùi ống có sẵn thêm 100–150 mm rồi nối đoạn dài hơn.</div>`; });
+    txtc = `CO 90° CÙNG CAO ĐỘ DN${DN[s.i]} ${pipeName()}\nCo 90° tâm→đầu ${mm(r.A)}, tâm co → đầu ống nối: ${mm(r.E)}`
+      + [[r.s1, 'Ống 1'], [r.s2, 'Ống 2']].map(([sd, n]) => `\n${n}: đo ${mm(sd.m)} → ` + (sd.d > 1 ? `NỐI THÊM ${mm(sd.piece)} mm` : sd.d < -1 ? `CẮT BỚT ${mm(-sd.d)} mm` : 'vừa khít')).join('');
+  } else if (kind === 'perp') {
     const H = r.H, a = r.s1 ? r.s1.m : r.E, C1 = [0, 0], C2 = [0, -H], lead = Math.max(3 * D, a + 1.5 * D);
     fs = 0.045 * Math.max(lead + 4 * D, H);
     g += pth([[-lead, 0], C1, [0, -H + r.A]], 'var(--steel)', D);
@@ -984,7 +1035,7 @@ function renderOffset2(kind) {
   const pad = fs * .4;
   svg.setAttribute('viewBox', `${(x0 - pad).toFixed(0)} ${(y0 - pad).toFixed(0)} ${(x1 - x0 + 2 * pad).toFixed(0)} ${(y1 - y0 + 2 * pad).toFixed(0)}`);
   svg.innerHTML = g;
-  if (!r.err && r.cut < 100) html += '<div class="note">Ống đứng ngắn dưới 100 mm, khó lắp: có thể hàn 2 co sát nhau.</div>';
+  if (!r.err && kind !== 'e90' && r.cut < 100) html += '<div class="note">Ống đứng ngắn dưới 100 mm, khó lắp: có thể hàn 2 co sát nhau.</div>';
   el.innerHTML = html + (r.err ? '' : copyBtn('lech'));
   texts.lech = r.err ? '' : txtc;
 }
@@ -1548,6 +1599,19 @@ function rebuild3D() {
       { vecs: [X, new T.Vector3(0, -1, 0), d2, d3], trims: [0, r.A9, r.A4, r.A4, 0] });
     return;
   }
+  if (r.kind === 'e90') {
+    const T = v3.T, n = { t: 'cE90', custom: r.A };
+    const leg = (sd, first) => {
+      const ext = sd.d > 1 ? sd.d : 0;
+      const els = ext ? (first ? [{ t: 'exist' }, { t: 'pipe', ext: true }, n] : [n, { t: 'pipe', ext: true }, { t: 'exist' }]) : (first ? [{ t: 'exist' }, n] : [n, { t: 'exist' }]);
+      return { len: r.E + ext, el: { els, r: { cut: ext ? sd.piece : 0 } } };
+    };
+    const L1 = leg(r.s1, true), L2 = leg(r.s2, false);
+    if (!v3.framed) { v3.theta = .3; v3.phi = .62; }
+    build3D(s, { A: { t: 'exist' }, B: { t: 'exist' }, legs: [{ len: L1.len, items: [] }, { len: L2.len, items: [] }] },
+      { legs: [L1.el, L2.el] }, { vecs: [X, new T.Vector3(0, 0, -1)], trims: [0, r.A, 0] });
+    return;
+  }
   if (r.kind === 'perp' || r.kind === 'b45') {
     const T = v3.T, Yd = new T.Vector3(0, -1, 0), pp = r.kind === 'perp';
     const A1 = pp ? r.A : r.A9, A2 = pp ? r.A : r.A4, E1 = pp ? r.E : r.E9, E2 = pp ? r.E : r.E4;
@@ -1838,7 +1902,7 @@ $('od').addEventListener('input', e => { st.od = num(e.target) || null; renderCa
 $('wall').addEventListener('input', e => { st.wall = num(e.target) || null; renderCalcPipe(); });
 function renderCalcPipe() { const s = S(), m = MAT[st.mat]; $('kgm').value = m.steel ? (0.02466 * s.wall * (s.od - s.wall)).toFixed(2).replace('.', ',') : '—'; renderList(); renderCalc(); }
 ['pg', 'pw', 'ps', 'pc', 'pt', 'pfm', 'meas'].forEach(id => $(id).addEventListener('input', renderCalc));
-['o-ang', 'o-X', 'o-Y', 'o-pos', 'o-L', 'o-H', 'o-a', 'o-b', 'o-dx', 'o-dy', 'o-p3', 'o-dx3', 'o-dy3'].forEach(id => $(id).addEventListener('input', () => { renderOffset(); save(); }));
+['o-ang', 'o-X', 'o-Y', 'o-pos', 'o-L', 'o-H', 'o-a', 'o-b', 'o-a2', 'o-b2', 'o-dx', 'o-dy', 'o-p3', 'o-dx3', 'o-dy3'].forEach(id => $(id).addEventListener('input', () => { renderOffset(); save(); }));
 document.querySelectorAll('[data-ok]').forEach(b => b.addEventListener('click', () => { st.okind = b.dataset.ok; v3.framed = false; renderOffset(); save(); }));
 $('run').addEventListener('change', e => {
   const a = e.target.dataset.anchor;
@@ -1957,6 +2021,6 @@ initStore();
   navigator.serviceWorker.ready.then(() => caches.keys()).then(k => say(k.some(x => x.startsWith('cat-ong-utc-')) ? '✓ Đã lưu trên máy: dùng được khi mất mạng' : 'Đang lưu app về máy…', true));
 })();
 </script>
-<!-- build 202610261342 -->
+<!-- build 202610292115 -->
 </body>
 </html>
