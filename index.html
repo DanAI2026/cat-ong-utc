@@ -200,6 +200,7 @@ svg text{font-family:var(--f-num);fill:var(--ink)}
   <div class="brand"><h1>Cắt ống <span>UTC</span></h1><span class="pipe-tag" id="tag">—</span></div>
   <nav class="tabs" role="tablist" aria-label="Chế độ tính">
     <button role="tab" id="t-tuyen" aria-controls="tuyen" aria-selected="true">Đoạn ống nối</button>
+    <button role="tab" id="t-bom" aria-controls="bom" aria-selected="false">Đầu bơm</button>
     <button role="tab" id="t-lech" aria-controls="lech" aria-selected="false">Lệch tâm 2 co</button>
     <button role="tab" id="t-nhieu" aria-controls="nhieu" aria-selected="false">Tuyến nhiều đoạn</button>
     <button role="tab" id="t-vattu" aria-controls="vattu" aria-selected="false">Vật tư dự án</button>
@@ -290,6 +291,27 @@ svg text{font-family:var(--f-num);fill:var(--ink)}
     </ul>
   </details>
   <div class="result" id="r-tuyen" aria-live="polite"></div>
+</section>
+
+<!-- ĐẦU BƠM -->
+<section class="stack" id="bom" role="tabpanel" aria-labelledby="t-bom" style="padding-top:0" hidden>
+  <div class="card">
+    <h2>Cụm ống đầu bơm</h2>
+    <div class="seg" role="group" aria-label="Đầu bơm">
+      <button type="button" data-pside="day" aria-pressed="true">Đầu đẩy</button>
+      <button type="button" data-pside="hut" aria-pressed="false">Đầu hút</button>
+    </div>
+    <p class="lead" id="p-lead"></p>
+    <div class="grid">
+      <label class="f"><span>Cỡ miệng bơm</span><div class="inp sel"><select id="p-dnp"></select></div></label>
+      <label class="f"><span>Ống chỉ dài</span><div class="inp"><input id="p-sp" inputmode="decimal" value="200"><i>mm</i></div></label>
+      <label class="f full"><span>Số ống chỉ đo theo</span><div class="inp sel"><select id="p-spm"><option value="pipe">Chiều dài ống cắt</option><option value="face">Mặt bích → mặt bích</option></select></div></label>
+    </div>
+    <ol class="run" id="p-run"></ol>
+    <label class="f"><span id="p-meas-l">Khoảng đo</span><div class="inp"><input id="p-meas" inputmode="decimal" placeholder="bỏ trống nếu không cần"><i>mm</i></div></label>
+  </div>
+  <div class="card fig" aria-label="Hình cụm đầu bơm"><svg id="p-svg" viewBox="0 0 360 360" style="max-height:520px"></svg></div>
+  <div class="result" id="r-bom" aria-live="polite"></div>
 </section>
 
 <!-- LỆCH TÂM -->
@@ -1696,8 +1718,174 @@ function rebuild3D() {
     { legs }, { vecs: [X, d2, X], trims: [0, r.A, r.A, 0] });
 }
 
-function renderAll() { fillPipe(); renderList(); renderRouteForm(); renderRun(); renderOffset(); renderRoute(); renderRef(); save(); }
-function renderCalc() { renderRun(); renderOffset(); renderRoute(); renderRef(); save(); }
+// ĐẦU BƠM: cụm ống lắp sẵn ở đầu đẩy và đầu hút của bơm, đều nối bích
+const PUMP = {
+  day: { items: [{ k: 'red', nm: 'Côn thu' }, { k: 'flex', nm: 'Khớp nối mềm' }, { k: 'sp' }, { k: 'chk', opts: ['chks', 'chkw'] }, { k: 'sp' }, { k: 'vlv', opts: ['gate', 'bfly'] }] },
+  hut: { items: [{ k: 'redx', nm: 'Côn thu lệch tâm' }, { k: 'flex', nm: 'Khớp chống rung' }, { k: 'elb', nm: 'Co 90°' }, { k: 'sp' }, { k: 'ystr', nm: 'Y lọc' }, { k: 'vlv', opts: ['gate', 'bfly'] }] },
+};
+const PVN = { chks: 'Van 1 chiều lá lật', chkw: 'Van 1 chiều đĩa kép', gate: 'Van cổng tay quay', bfly: 'Van bướm tay quay' };
+if (!st.pump) st.pump = { side: 'day', dnp: null, sp: 200, spm: 'pipe', day: [], hut: [], meas: { day: '', hut: '' } };
+function pUser(side, k) { const a = st.pump[side]; return a[k] || (a[k] = {}); }
+function pType(side, k) { const c = PUMP[side].items[k]; return c.opts ? (pUser(side, k).t || c.opts[0]) : c.k; }
+function pName(side, k) { const c = PUMP[side].items[k], t = pType(side, k); return c.k === 'sp' ? 'Ống chỉ' : c.opts ? PVN[t] : c.nm; }
+const pOff = s => s.fm === 'slip' ? s.s : s.tf;   // phần ống ăn vào mỗi bích
+// chiều dài mặc định: mặt bích → mặt bích (co: tâm → mặt bích); ống chỉ: chiều dài ống cắt
+function pDef(t, s) {
+  if (t === 'red' || t === 'redx') { const r = fitLen(s, 'red'); return r == null ? null : r + 2 * s.tf; }
+  if (t === 'elb') { const e = fitLen(s, 'e90'); return e == null ? null : e + s.tf; }
+  if (t === 'sp') { const L = st.pump.sp > 0 ? st.pump.sp : 200; return st.pump.spm === 'face' ? L - 2 * pOff(s) : L; }
+  if (VALVE[t]) { const p = projFit(t, s.i); return p ? p.v : VALVE[t].len[s.i]; }
+  return null;
+}
+function pLen(side, k, s) { const u = pUser(side, k); return u.custom != null ? u.custom : pDef(pType(side, k), s); }
+function calcPump(s, side) {
+  const rows = [], legs = [0, 0], miss = [];
+  let leg = 0;
+  PUMP[side].items.forEach((c, k) => {
+    const t = pType(side, k), v = pLen(side, k, s);
+    if (v == null) { miss.push(pName(side, k)); return; }
+    const L = t === 'sp' ? v + 2 * pOff(s) : v;            // ống chỉ: mặt bích → mặt bích
+    legs[leg] += s.g;
+    if (t === 'elb') { rows.push({ k, t, L, leg, a: legs[leg] + L, cut: null }); legs[leg] += L; leg = 1; legs[1] = L; rows[rows.length - 1].b = L; return; }
+    const a = legs[leg]; legs[leg] += L;
+    rows.push({ k, t, L, leg, a, b: legs[leg], cut: t === 'sp' ? v : null });
+  });
+  return { rows, legs, turn: rows.some(r => r.t === 'elb'), err: miss.length ? 'Chưa có chiều dài DN' + DN[s.i] + ' cho: ' + miss.join(', ') + '. Nhập tay ở danh sách.' : null };
+}
+
+function renderPumpForm() {
+  const s = S(), side = st.pump.side;
+  document.querySelectorAll('[data-pside]').forEach(b => b.setAttribute('aria-pressed', b.dataset.pside === side));
+  if (st.pump.dnp == null || DN.indexOf(st.pump.dnp) > s.i) st.pump.dnp = DN[Math.max(0, s.i - 2)];
+  $('p-dnp').innerHTML = DN.map((d, k) => k <= s.i ? `<option value="${d}"${d === st.pump.dnp ? ' selected' : ''}>DN${d} · ${INCH[k]}</option>` : '').join('');
+  $('p-sp').value = st.pump.sp; $('p-spm').value = st.pump.spm; $('p-meas').value = st.pump.meas[side] || '';
+  $('p-meas-l').textContent = side === 'day' ? 'Đo từ mặt bích bơm tới tim ống góp (nếu có)' : 'Đo từ tim co tới tim ống góp (nếu có)';
+  const items = PUMP[side].items;
+  $('p-run').innerHTML = `<li class="anchor"><span class="ic">B</span><div class="nm">Mặt bích ${side === 'day' ? 'đầu đẩy' : 'đầu hút'} của bơm<small>DN${st.pump.dnp}, mốc tính từ đây</small></div><div class="ctl"></div></li>`
+    + items.map((c, k) => {
+      const t = pType(side, k), L = pLen(side, k, s), u = pUser(side, k);
+      const nm = c.opts ? `<select data-pt="${k}" aria-label="Loại van" style="height:40px;border:1.5px solid var(--line);border-radius:8px;background:var(--sunk);color:var(--ink);font:600 14px var(--f-body);max-width:100%">${c.opts.map(o => `<option value="${o}"${o === t ? ' selected' : ''}>${PVN[o]}</option>`).join('')}</select>` : esc(pName(side, k));
+      const sub = t === 'sp' ? 'chiều dài ống cắt (chưa gồm bích)' : t === 'elb' ? 'tâm co → mặt bích' + (u.custom == null ? ', tạm: co hàn + dày bích' : '')
+        : t === 'red' || t === 'redx' ? `DN${st.pump.dnp} → DN${DN[s.i]}, mặt bích → mặt bích` + (u.custom == null ? ', tạm: côn hàn + 2 bích' : '') : 'mặt bích → mặt bích';
+      return `<li${t === 'sp' ? ' class="pipe"' : ''}><span class="ic">${t === 'sp' ? '✂' : k + 1}</span><div class="nm">${nm}<small>${sub}</small></div>
+        <div class="ctl"><input data-pl="${k}" inputmode="decimal" value="${L == null ? '' : mm(L)}" placeholder="?" class="${u.custom != null ? 'custom' : ''}" aria-label="Chiều dài"></div></li>`;
+    }).join('');
+}
+
+function drawPump(s, side, R) {
+  const D = s.od, Dp = tableOd(DN.indexOf(st.pump.dnp)) || D * .7, tf = Math.max(s.tf, 8), FD = D * 1.45 + 40;
+  const fs = Math.max(D * .55, 50), turn = R.turn;
+  let out = '', minx = 1e9, maxx = -1e9, miny = 1e9, maxy = -1e9;
+  const box = (x, y) => { minx = Math.min(minx, x); maxx = Math.max(maxx, x); miny = Math.min(miny, y); maxy = Math.max(maxy, y); };
+  const FL = 'fill:var(--p-mid);stroke:var(--p-lo);stroke-width:2', VL = 'fill:var(--v-mid);stroke:var(--v-lo);stroke-width:2', CUT = 'fill:var(--accent);stroke:var(--o-lo);stroke-width:2';
+  // trục: đầu đẩy đi thẳng lên; đầu hút đi ngang sang phải rồi co lên
+  const dir = leg => (side === 'day' || leg === 1) ? [0, -1] : [1, 0];
+  const corner = turn ? [R.legs[0], 0] : null;
+  const at = (leg, d) => { const u = dir(leg); return leg === 1 ? [corner[0] + u[0] * d, corner[1] + u[1] * d] : [u[0] * d, u[1] * d]; };
+  const flange = x => `<rect x="${x}" y="${-FD / 2}" width="${tf}" height="${FD}" style="${FL}"/>`;
+  const labels = [];
+  let hrow = 0;
+  R.rows.forEach(r => {
+    const u = dir(r.leg), ang = u[1] < 0 ? -90 : 0;
+    if (r.t === 'elb') {
+      const P = corner, A = r.L, Rb = Math.max(Math.min((fitLen(s, 'e90') || D * 1.5), A - tf), D * .6);
+      const p1 = [P[0] - A, 0], p2 = [P[0], -A];
+      out += `<path d="M${p1[0] + tf} 0H${P[0] - Rb}A${Rb} ${Rb} 0 0 0 ${P[0]} ${-Rb}V${-A + tf}" style="fill:none;stroke:var(--p-lo);stroke-width:${D + 4}"/>`
+        + `<path d="M${p1[0] + tf} 0H${P[0] - Rb}A${Rb} ${Rb} 0 0 0 ${P[0]} ${-Rb}V${-A + tf}" style="fill:none;stroke:var(--p-mid);stroke-width:${D}"/>`
+        + `<rect x="${p1[0]}" y="${-FD / 2}" width="${tf}" height="${FD}" style="${FL}"/><rect x="${P[0] - FD / 2}" y="${-A}" width="${FD}" height="${tf}" style="${FL}"/>`;
+      box(p1[0], FD / 2); box(P[0] + FD / 2, -A);
+      labels.push({ p: [P[0] - A / 2, FD / 2 + fs * 1.2 + (hrow++) * fs * 1.2], txt: 'Co 90° · ' + mm(A), anchor: 'middle' });
+      return;
+    }
+    const p0 = at(r.leg, r.a), L = r.L, h = D / 2;
+    let g = '';
+    if (r.t === 'red' || r.t === 'redx') {
+      const top0 = r.t === 'redx' ? -h : -Dp / 2, bot0 = r.t === 'redx' ? -h + Dp : Dp / 2;
+      g = `<path d="M${tf} ${top0}L${L - tf} ${-h}L${L - tf} ${h}L${tf} ${bot0}Z" style="${FL}"/>` + flange(0) + flange(L - tf);
+    } else if (r.t === 'flex') g = `<ellipse cx="${L / 2}" cy="0" rx="${L / 2 - tf}" ry="${D * .78}" style="fill:#3d4a55;stroke:#222;stroke-width:2"/>` + flange(0) + flange(L - tf);
+    else if (r.t === 'sp') g = `<rect x="${tf}" y="${-h}" width="${L - 2 * tf}" height="${D}" style="${CUT}"/>` + flange(0) + flange(L - tf);
+    else if (r.t === 'ystr') g = `<rect x="${tf}" y="${-h * 1.15}" width="${L - 2 * tf}" height="${D * 1.15}" rx="${D * .2}" style="${VL}"/><path d="M${L * .3} ${h * .5}L${L * .62} ${D * 1.45}" style="stroke:var(--v-lo);stroke-width:${D * .7};stroke-linecap:round"/><path d="M${L * .3} ${h * .5}L${L * .62} ${D * 1.45}" style="stroke:var(--v-mid);stroke-width:${D * .55};stroke-linecap:round"/>` + flange(0) + flange(L - tf);
+    else if (r.t === 'gate' || r.t === 'bfly') {
+      const wh = r.t === 'gate' ? D * 1.6 : D * .9;
+      g = `<rect x="${tf}" y="${-h * 1.1}" width="${Math.max(L - 2 * tf, 4)}" height="${D * 1.1}" style="${VL}"/><path d="M${L / 2} ${-h * 1.1}V${-h - wh}" style="stroke:var(--v-lo);stroke-width:${Math.max(D * .08, 6)}"/>`
+        + (r.t === 'gate' ? `<rect x="${L / 2 - D * .7}" y="${-h - wh - 10}" width="${D * 1.4}" height="20" rx="8" style="${VL}"/>` : `<path d="M${L / 2} ${-h - wh}H${L / 2 + D * 1.2}" style="stroke:var(--v-lo);stroke-width:${Math.max(D * .1, 8)};stroke-linecap:round"/>`)
+        + flange(0) + flange(L - tf);
+    } else {   // van 1 chiều
+      g = `<rect x="${tf}" y="${-h * 1.15}" width="${Math.max(L - 2 * tf, 4)}" height="${D * 1.15}" style="${VL}"/><path d="M${L * .3} 0H${L * .7}M${L * .58} ${-D * .2}L${L * .7} 0L${L * .58} ${D * .2}" style="fill:none;stroke:#fff;stroke-width:${Math.max(D * .06, 5)}"/>`;
+      if (L > 2 * tf + 4) g += flange(0) + flange(L - tf);
+    }
+    out += `<g transform="translate(${p0[0]} ${p0[1]}) rotate(${ang})">${g}</g>`;
+    const p1 = at(r.leg, r.b); box(p0[0] - FD, p0[1] - FD); box(p1[0] + FD, p1[1] + FD);
+    // nhãn: nhánh đứng ghi bên phải, nhánh ngang ghi phía dưới
+    const mid = [(p0[0] + p1[0]) / 2, (p0[1] + p1[1]) / 2];
+    const nm = r.t === 'sp' ? 'Ống chỉ ' + mm(r.cut) + ' (bích→bích ' + mm(L) + ')' : (r.t === 'red' ? 'Côn' : r.t === 'redx' ? 'Côn lệch tâm' : r.t === 'flex' ? 'Khớp mềm' : r.t === 'ystr' ? 'Y lọc' : PVN[r.t]) + ' · ' + mm(L);
+    labels.push(u[1] < 0 ? { p: [mid[0] + FD / 2 + D * (r.t === 'ystr' ? 2.2 : .9), mid[1] + fs * .35], txt: nm, anchor: 'start', cut: r.t === 'sp' }
+      : { p: [mid[0], FD / 2 + fs * 1.2 + (hrow++) * fs * 1.2], txt: nm, anchor: 'middle', cut: r.t === 'sp' });
+  });
+  // bơm
+  const pw = D * 3.2, ph = D * 2.2;
+  out = (side === 'day' ? `<rect x="${-pw / 2}" y="0" width="${pw}" height="${ph}" rx="${D * .3}" style="fill:#2f7a64"/><text x="0" y="${ph * .62}" text-anchor="middle" font-size="${fs}" style="fill:#fff" font-weight="700">BƠM</text>`
+    : `<rect x="${-pw}" y="${-ph / 2}" width="${pw}" height="${ph}" rx="${D * .3}" style="fill:#2f7a64"/><text x="${-pw / 2}" y="${fs * .35}" text-anchor="middle" font-size="${fs}" style="fill:#fff" font-weight="700">BƠM</text>`) + out;
+  side === 'day' ? (box(-pw / 2, ph), box(pw / 2, 0)) : (box(-pw, ph / 2), box(0, -ph / 2));
+  // tim ống
+  const end = at(turn ? 1 : 0, R.legs[turn ? 1 : 0]);
+  out += turn ? `<path d="M0 0H${corner[0]}V${end[1]}" style="fill:none;stroke:var(--ink);stroke-width:2;stroke-dasharray:24 8 4 8"/>`
+    : `<path d="M0 0L${end[0]} ${end[1]}" style="fill:none;stroke:var(--ink);stroke-width:2;stroke-dasharray:24 8 4 8"/>`;
+  labels.forEach(l => { out += `<text x="${l.p[0]}" y="${l.p[1]}" text-anchor="${l.anchor}" font-size="${fs}" font-weight="700" style="fill:${l.cut ? 'var(--accent)' : 'var(--ink)'}">${esc(l.txt)}</text>`; const w = l.txt.length * fs * .58; box(l.anchor === 'start' ? l.p[0] + w : l.p[0] + w / 2, l.p[1]); if (l.anchor === 'middle') box(l.p[0] - w / 2, l.p[1]); });
+  // kích thước tổng
+  if (side === 'day') {
+    const x = -FD / 2 - D * .8, y1 = end[1];
+    out += `<path d="M${x} 0V${y1}M${x - 25} 25L${x + 25} -25M${x - 25} ${y1 + 25}L${x + 25} ${y1 - 25}" style="stroke:var(--ink);stroke-width:3;fill:none"/><text transform="translate(${x - fs * .5} ${y1 / 2}) rotate(-90)" text-anchor="middle" font-size="${fs}" font-weight="700">${mm(R.legs[0])}</text>`;
+    box(x - fs * 1.5, 0);
+  } else if (turn) {
+    const y = -FD / 2 - D * .8 - fs * .5, x2 = corner[0];
+    out += `<path d="M0 ${y}H${x2}M-25 ${y + 25}L25 ${y - 25}M${x2 - 25} ${y + 25}L${x2 + 25} ${y - 25}" style="stroke:var(--ink);stroke-width:3;fill:none"/><text x="${x2 / 2}" y="${y - fs * .4}" text-anchor="middle" font-size="${fs}" font-weight="700">${mm(R.legs[0])}</text>`;
+    const xx = x2 - FD / 2 - D * .8 - fs * .2, y1 = end[1];
+    out += `<path d="M${xx} 0V${y1}M${xx - 25} 25L${xx + 25} -25M${xx - 25} ${y1 + 25}L${xx + 25} ${y1 - 25}" style="stroke:var(--ink);stroke-width:3;fill:none"/><text transform="translate(${xx - fs * .5} ${y1 / 2}) rotate(-90)" text-anchor="middle" font-size="${fs}" font-weight="700">${mm(R.legs[1])}</text>`;
+    box(0, y - fs * 1.5);
+  }
+  const pad = fs;
+  $('p-svg').setAttribute('viewBox', `${minx - pad} ${miny - pad} ${maxx - minx + 2 * pad} ${maxy - miny + 2 * pad}`);
+  $('p-svg').innerHTML = out;
+}
+
+function renderPump() {
+  const s = S(), side = st.pump.side, R = calcPump(s, side), el = $('r-bom');
+  document.querySelectorAll('#p-run [data-pl]').forEach(i => { if (document.activeElement !== i) { const L = pLen(side, +i.dataset.pl, s); i.value = L == null ? '' : mm(L); } });
+  if (R.err) { el.innerHTML = '<h2>Cụm ống đầu bơm</h2><div class="note bad">' + esc(R.err) + '</div>'; $('p-svg').innerHTML = ''; texts.bom = ''; return; }
+  drawPump(s, side, R);
+  const pj = lib.projects.find(p => p.id === lib.pid), off = pOff(s), turn = R.turn, last = R.rows[R.rows.length - 1];
+  let html = '<h2>Cụm ống đầu bơm</h2><div class="big">';
+  html += turn ? `<div><span>Ngang: mặt bích bơm → tim co</span><b style="font-size:38px">${mm(R.legs[0])}<small>mm</small></b></div><div><span>Đứng: tim co → mặt bích ra van</span><b style="font-size:38px">${mm(R.legs[1])}<small>mm</small></b></div>`
+    : `<div><span>Mặt bích bơm → mặt bích ra van</span><b>${mm(R.legs[0])}<small>mm</small></b></div>`;
+  html += '</div><table class="kv"><tr><td><b>Từng món</b> (mỗi chỗ ghép bích có gioăng ' + mm(s.g) + ')</td><td>dài</td><td>mặt ra cách mốc</td></tr>';
+  R.rows.forEach(r => {
+    const nm = pName(side, r.k) + (r.t === 'sp' ? ` (cắt ${mm(r.cut)}, bích → bích)` : r.t === 'elb' ? ' (tâm → mặt bích)' : '');
+    const where = r.t === 'elb' ? `tim co: ${mm(r.a)}` : (r.leg === 1 ? 'từ tim co ' : '') + mm(r.b);
+    html += `<tr><td>${esc(nm)}</td><td style="text-align:right;font:600 15px var(--f-num)">${mm(r.L)}</td><td>${where}</td></tr>`;
+  });
+  html += '</table>';
+  const sps = R.rows.filter(r => r.t === 'sp');
+  if (sps.length) html += `<div class="note info"><b>Ống chỉ cần cắt: ${sps.length} khúc.</b><br>` + sps.map(r => `Cắt ${mm(r.cut)} mm, hàn bích 2 đầu (${s.fm === 'slip' ? 'ống lùi ' + mm(off) : 'dày bích ' + mm(off)} × 2), đo mặt bích → mặt bích phải đúng ${mm(r.L)} mm.`).join('<br>') + '</div>';
+  if (!s.tfMeasured) html += '<div class="note"><b>Chưa nhập độ dày mặt bích đo thực tế</b>, đang tạm tính theo PN16. Đo bích rồi nhập ở ô "Độ dày mặt bích" phía trên.</div>';
+  const tam = R.rows.filter(r => (r.t === 'red' || r.t === 'redx' || r.t === 'elb') && pUser(side, r.k).custom == null);
+  if (tam.length) html += `<div class="note">${tam.map(r => pName(side, r.k)).join(', ')}: đang để số tạm tính. Thợ đo thực tế rồi nhập lại ở danh sách cho đúng.</div>`;
+  const meas = num($('p-meas')), tot = R.legs[turn ? 1 : 0];
+  let mtxt = '';
+  if (meas > 0) {
+    const rem = meas - tot;
+    html += rem > 0 ? `<div class="note info">Từ mặt bích ra của van tới mốc đo còn <b>${mm(rem)} mm</b>. Dùng số này ở tab "Đoạn ống nối" để ra ống cắt tiếp theo.</div>`
+      : `<div class="note bad">Khoảng đo ngắn hơn cụm đầu bơm ${mm(-rem)} mm. Kiểm tra lại số đo.</div>`;
+    if (rem > 0) mtxt = `\nTừ mặt bích van tới mốc đo còn: ${mm(rem)} mm`;
+  }
+  el.innerHTML = html + copyBtn('bom');
+  texts.bom = `${pj ? 'DỰ ÁN ' + pj.name + '\n' : ''}CỤM ${side === 'day' ? 'ĐẦU ĐẨY' : 'ĐẦU HÚT'} BƠM, miệng bơm DN${st.pump.dnp}, ống DN${DN[s.i]}\n`
+    + R.rows.map(r => `- ${pName(side, r.k)}${r.t === 'sp' ? ` cắt ${mm(r.cut)}, bích→bích ${mm(r.L)}` : ': ' + mm(r.L)}`).join('\n')
+    + (turn ? `\n=> NGANG mặt bích bơm → tim co: ${mm(R.legs[0])} mm\n=> ĐỨNG tim co → mặt bích van: ${mm(R.legs[1])} mm` : `\n=> MẶT BÍCH BƠM → MẶT BÍCH RA VAN: ${mm(R.legs[0])} mm`) + mtxt;
+}
+
+function renderAll() { fillPipe(); renderList(); renderRouteForm(); renderPumpForm(); renderRun(); renderPump(); renderOffset(); renderRoute(); renderRef(); save(); }
+function renderCalc() { renderRun(); renderPump(); renderOffset(); renderRoute(); renderRef(); save(); }
 
 // ---------- kho vật tư: kho chung (db) nếu có, nếu không thì lưu trên máy ----------
 const store = { db: null, assets: null, unsubItems: null, local: { projects: [], items: {} } };
@@ -1951,7 +2139,7 @@ $('mat').addEventListener('change', e => {
   st.od = st.wall = null; renderAll();
 });
 $('fam').addEventListener('change', e => { st.fam = e.target.value; renderAll(); });
-$('dn').addEventListener('change', e => { st.i = +e.target.value; st.od = st.wall = null; st.mid.forEach(m => m.custom = null); st.A.custom = st.B.custom = null; renderAll(); });
+$('dn').addEventListener('change', e => { st.i = +e.target.value; st.od = st.wall = null; st.mid.forEach(m => m.custom = null); ['day', 'hut'].forEach(k => st.pump[k].forEach(u => { if (u) u.custom = null; })); st.A.custom = st.B.custom = null; renderAll(); });
 $('od').addEventListener('input', e => { st.od = num(e.target) || null; renderCalcPipe(); });
 $('wall').addEventListener('input', e => { st.wall = num(e.target) || null; renderCalcPipe(); });
 function renderCalcPipe() { const s = S(), m = MAT[st.mat]; $('kgm').value = m.steel ? (0.02466 * s.wall * (s.od - s.wall)).toFixed(2).replace('.', ',') : '—'; renderList(); renderCalc(); }
@@ -1983,6 +2171,29 @@ $('sp-on').checked = st.sp.on; $('sp-len').value = st.sp.len; $('sp-mode').value
 $('sp-on').addEventListener('change', e => { st.sp.on = e.target.checked; $('sp-box').hidden = !st.sp.on; renderList(); renderCalc(); });
 $('sp-len').addEventListener('input', e => { const v = num(e.target); st.sp.len = isFinite(v) && v > 0 ? v : 0; renderList(); renderCalc(); });
 $('sp-mode').addEventListener('change', e => { st.sp.mode = e.target.value; renderCalc(); });
+// đầu bơm
+const PLEAD = { day: 'Từ mặt bích đầu đẩy của bơm đi thẳng lên: côn thu, khớp nối mềm, ống chỉ, van 1 chiều, ống chỉ, van tay quay. Sửa chiều dài từng món theo hàng thực tế.',
+  hut: 'Từ mặt bích đầu hút của bơm đi ngang: côn thu lệch tâm, khớp chống rung, co 90° quay lên, ống chỉ, Y lọc, van cổng tay quay. Sửa chiều dài từng món theo hàng thực tế.' };
+const pumpSide = () => { $('p-lead').textContent = PLEAD[st.pump.side]; renderPumpForm(); renderPump(); save(); };
+document.querySelectorAll('[data-pside]').forEach(b => b.addEventListener('click', () => { st.pump.side = b.dataset.pside; pumpSide(); }));
+$('p-lead').textContent = PLEAD[st.pump.side];
+$('p-dnp').addEventListener('change', e => { st.pump.dnp = +e.target.value; renderPumpForm(); renderPump(); save(); });
+$('p-sp').addEventListener('input', e => { const v = num(e.target); st.pump.sp = isFinite(v) && v > 0 ? v : 0; st.pump[st.pump.side].forEach((u, k) => { if (u && PUMP[st.pump.side].items[k].k === 'sp') u.custom = null; }); renderPumpRows(); });
+$('p-spm').addEventListener('change', e => { st.pump.spm = e.target.value; renderPumpRows(); });
+$('p-meas').addEventListener('input', e => { st.pump.meas[st.pump.side] = e.target.value; renderPump(); save(); });
+// đang gõ ở ô ống chỉ: chỉ cập nhật số ở danh sách, không vẽ lại ô đang gõ
+function renderPumpRows() { renderPump(); save(); }
+$('p-run').addEventListener('input', e => {
+  const k = e.target.dataset.pl; if (k == null) return;
+  const u = pUser(st.pump.side, +k), v = num(e.target);
+  u.custom = isFinite(v) ? v : null; e.target.classList.toggle('custom', u.custom != null);
+  renderPump(); save();
+});
+$('p-run').addEventListener('change', e => {
+  const k = e.target.dataset.pt; if (k == null) return;
+  const u = pUser(st.pump.side, +k); u.t = e.target.value; u.custom = null;
+  renderPumpForm(); renderPump(); save();
+});
 $('add').addEventListener('change', e => {
   const v = e.target.value; if (!v) return;
   st.mid.push(v.startsWith('pi:') ? { t: 'pi', id: v.slice(3), custom: null } : { t: v, custom: null });
@@ -2033,7 +2244,7 @@ $('rt-addleg').addEventListener('click', () => {
   L.push({ dir: ['L', 'R'].includes(last) ? 'D' : 'L', len: 1000, items: [{ t: 'pipe' }] });
   renderRouteForm(); renderRoute(); save();
 });
-const TABS = ['tuyen', 'lech', 'nhieu', 'vattu', 'tra'];
+const TABS = ['tuyen', 'bom', 'lech', 'nhieu', 'vattu', 'tra'];
 function show(id) {
   document.querySelectorAll('nav.tabs button').forEach(b => b.setAttribute('aria-selected', b.getAttribute('aria-controls') === id));
   TABS.forEach(k => $(k).hidden = k !== id);
@@ -2080,6 +2291,6 @@ initStore();
   navigator.serviceWorker.ready.then(() => caches.keys()).then(k => say(k.some(x => x.startsWith('cat-ong-utc-')) ? '✓ Đã lưu trên máy: dùng được khi mất mạng' : 'Đang lưu app về máy…', true));
 })();
 </script>
-<!-- build 202611011530 -->
+<!-- build 202611011700 -->
 </body>
 </html>
