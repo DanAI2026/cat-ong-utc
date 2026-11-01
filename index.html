@@ -1721,10 +1721,11 @@ function rebuild3D() {
 // ĐẦU BƠM: cụm ống lắp sẵn ở đầu đẩy và đầu hút của bơm, đều nối bích
 const PUMP = {
   day: { items: [{ k: 'red', nm: 'Côn thu' }, { k: 'flex', nm: 'Khớp nối mềm' }, { k: 'sp' }, { k: 'chk', opts: ['chks', 'chkw'] }, { k: 'sp' }, { k: 'vlv', opts: ['gate', 'bfly'] }] },
-  hut: { items: [{ k: 'redx', nm: 'Côn thu lệch tâm' }, { k: 'flex', nm: 'Khớp chống rung' }, { k: 'elb', nm: 'Co 90°' }, { k: 'sp' }, { k: 'ystr', nm: 'Y lọc' }, { k: 'vlv', opts: ['gate', 'bfly'] }] },
+  hut: { items: [{ k: 'redx', nm: 'Côn thu lệch tâm' }, { k: 'flex', nm: 'Khớp chống rung' }, { k: 'sp' }, { k: 'elb', nm: 'Co 90°' }, { k: 'sp' }, { k: 'ystr', nm: 'Y lọc' }, { k: 'vlv', opts: ['gate', 'bfly'] }] },
 };
 const PVN = { chks: 'Van 1 chiều lá lật', chkw: 'Van 1 chiều đĩa kép', gate: 'Van cổng tay quay', bfly: 'Van bướm tay quay' };
-if (!st.pump) st.pump = { side: 'day', dnp: null, sp: 200, spm: 'pipe', day: [], hut: [], meas: { day: '', hut: '' } };
+if (!st.pump) st.pump = { side: 'day', dnp: null, sp: 200, spm: 'pipe', day: [], hut: [], meas: { day: '', hut: '' }, v: 2 };
+if (st.pump.v !== 2) { st.pump.hut = []; st.pump.v = 2; }   // đầu hút thêm ống chỉ trước co: thứ tự đổi, bỏ số cũ
 function pUser(side, k) { const a = st.pump[side]; return a[k] || (a[k] = {}); }
 function pType(side, k) { const c = PUMP[side].items[k]; return c.opts ? (pUser(side, k).t || c.opts[0]) : c.k; }
 function pName(side, k) { const c = PUMP[side].items[k], t = pType(side, k); return c.k === 'sp' ? 'Ống chỉ' : c.opts ? PVN[t] : c.nm; }
@@ -2173,7 +2174,7 @@ $('sp-len').addEventListener('input', e => { const v = num(e.target); st.sp.len 
 $('sp-mode').addEventListener('change', e => { st.sp.mode = e.target.value; renderCalc(); });
 // đầu bơm
 const PLEAD = { day: 'Từ mặt bích đầu đẩy của bơm đi thẳng lên: côn thu, khớp nối mềm, ống chỉ, van 1 chiều, ống chỉ, van tay quay. Sửa chiều dài từng món theo hàng thực tế.',
-  hut: 'Từ mặt bích đầu hút của bơm đi ngang: côn thu lệch tâm, khớp chống rung, co 90° quay lên, ống chỉ, Y lọc, van cổng tay quay. Sửa chiều dài từng món theo hàng thực tế.' };
+  hut: 'Từ mặt bích đầu hút của bơm đi ngang: côn thu lệch tâm, khớp chống rung, ống chỉ, co 90° quay lên, ống chỉ, Y lọc, van cổng tay quay. Sửa chiều dài từng món theo hàng thực tế.' };
 const pumpSide = () => { $('p-lead').textContent = PLEAD[st.pump.side]; renderPumpForm(); renderPump(); save(); };
 document.querySelectorAll('[data-pside]').forEach(b => b.addEventListener('click', () => { st.pump.side = b.dataset.pside; pumpSide(); }));
 $('p-lead').textContent = PLEAD[st.pump.side];
@@ -2291,6 +2292,6 @@ initStore();
   navigator.serviceWorker.ready.then(() => caches.keys()).then(k => say(k.some(x => x.startsWith('cat-ong-utc-')) ? '✓ Đã lưu trên máy: dùng được khi mất mạng' : 'Đang lưu app về máy…', true));
 })();
 </script>
-<!-- build 202611011700 -->
+<!-- build 202611011800 -->
 </body>
 </html>
