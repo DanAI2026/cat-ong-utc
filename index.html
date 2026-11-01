@@ -310,8 +310,10 @@ svg text{font-family:var(--f-num);fill:var(--ink)}
     <ol class="run" id="p-run"></ol>
     <div class="grid">
       <label class="f full"><span id="p-meas-l">Khoảng đo</span><div class="inp"><input id="p-meas" inputmode="decimal" placeholder="bỏ trống nếu không cần"><i>mm</i></div></label>
-      <label class="f"><span>Đo tới</span><div class="inp sel"><select id="p-href"><option value="tim">Tim ống góp</option><option value="day">Đáy ống góp</option></select></div></label>
+      <label class="f full"><span>Nối vào ống góp</span><div class="inp sel"><select id="p-hcon"><option value="han">Hàn thẳng vào ống góp (cắt yên ngựa)</option><option value="tee">Tê có sẵn, chờ sẵn mặt bích</option></select></div></label>
+      <label class="f"><span>Đo tới</span><div class="inp sel"><select id="p-href"><option value="tim">Tim ống góp</option><option value="day">Đáy ống góp</option><option value="mat">Mặt bích chờ của tê</option></select></div></label>
       <label class="f"><span>Cỡ ống góp</span><div class="inp sel"><select id="p-hdn"></select></div></label>
+      <label class="f full" id="p-ht-f"><span>Tim ống góp → mặt bích chờ của tê <small id="p-ht-n"></small></span><div class="inp"><input id="p-ht" inputmode="decimal"><i>mm</i></div></label>
     </div>
   </div>
   <div class="card fig" aria-label="Hình cụm đầu bơm">
@@ -543,7 +545,7 @@ function famType(fam) { return { weld: 'W', thr: 'T', grv: 'G', glue: 'S', heat:
 function endType(el, S) {
   if (el.t === 'pipe' || el.t === 'kpipe') return 'P';
   if (el.t === 'pi') { const it = projItem(el.id); return it && it.ends ? it.ends : 'F'; }
-  if (el.t === 'flg' || VALVE[el.t] || el.t === 'cust') return 'F';
+  if (el.t === 'flg' || VALVE[el.t] || el.t === 'cust' || el.t === 'teeh') return 'F';
   if (el.t === 'exist') return 'X';
   return famType(S.fam);          // co, tê, côn
 }
@@ -1638,6 +1640,10 @@ function build3D(s, rt, R, opts) {
   if (opts.header) {   // ống góp nằm ngang, vuông góc với ống nối, tim tại điểm B
     const ax = Math.abs(un.y) > .9 ? new T.Vector3(1, 0, 0) : new T.Vector3().crossVectors(un, Y).normalize(), Lh = Math.max(D * 8, opts.header.r * 10);
     cyl(PB.clone().addScaledVector(ax, -Lh / 2), PB.clone().addScaledVector(ax, Lh / 2), opts.header.r, mat.steel);
+    if (opts.header.tee) {   // tê trên ống góp: nhánh tới mặt bích chờ
+      const Ht = opts.header.tee; cyl(PB.clone().addScaledVector(un, -Ht + 8), PB, D / 2, mat.steel);
+      flg(PB.clone().addScaledVector(un, -Ht + 8), un, 16);
+    }
     const lb = add(label3D('Ống góp DN' + opts.header.dn, '#ffffff', fs)); lb.position.copy(PB).addScaledVector(ax, Lh * .32).addScaledVector(un, opts.header.r + fs);
   }
   if (rt.B.t === 'flg') equip(PB, un); else if (rt.B.t === 'exist') cyl(PB, PB.clone().addScaledVector(un, D * 1.5), D / 2, mat.steel);
@@ -1687,11 +1693,11 @@ function rebuild3D() {
     const Up = new v3.T.Vector3(0, 1, 0), off = pOff(s), dp = tableOd(DN.indexOf(st.pump.dnp)) || s.od * .7;
     const node = r => r.t === 'sp' ? { t: 'kpipe', custom: r.cut, lbl: 'ống chỉ ' + mm(r.cut), off } : r.t === 'red' || r.t === 'redx' ? { t: 'redp', custom: r.L } : { t: r.t, custom: r.L };
     const H = pumpHdr(s, side, R), hd = H && !H.err;
-    const A = { t: 'flg' }, B = hd ? { t: 'hdr' } : { t: 'exist' }, tail = hd ? [{ t: 'pipe' }, B] : [B];
-    const ab = ['BƠM', hd ? '' : 'Ống góp'], header = hd ? { r: H.Rh, dn: H.dn } : null;
+    const A = { t: 'flg' }, B = hd ? { t: H.tee ? 'teeh' : 'hdr' } : { t: 'exist' }, tail = hd ? [{ t: 'pipe' }, B] : [B];
+    const ab = ['BƠM', hd ? '' : 'Ống góp'], header = hd ? { r: H.Rh, dn: H.dn, tee: H.tee ? H.Ht : 0 } : null;
     if (!v3.framed) { v3.theta = .75; v3.phi = 1.25; }
     if (!R.turn) {
-      build3D(s, { A, B, legs: [{ len: hd ? H.tim : R.legs[0], items: [] }] }, { legs: [{ els: [A, ...R.rows.map(node), ...tail], r: { cut: hd ? H.lng : 0 } }] }, { vecs: [Up], dp, ab, header });
+      build3D(s, { A, B, legs: [{ len: hd ? H.tim : R.legs[0], items: [] }] }, { legs: [{ els: [A, ...R.rows.map(node), ...tail], r: { cut: hd ? H.cut != null ? H.cut : H.lng : 0 } }] }, { vecs: [Up], dp, ab, header });
       return;
     }
     const ei = R.rows.findIndex(r => r.t === 'elb'), A9 = R.rows[ei].L;
@@ -1699,7 +1705,7 @@ function rebuild3D() {
     const l0 = [A, ...R.rows.slice(0, ei).map(node), { t: 'cE90', custom: A9 }];
     const l1 = [{ t: 'cE90', custom: A9 - s.g }, { t: 'flg' }, ...R.rows.slice(ei + 1).map(node), ...tail];
     build3D(s, { A, B, legs: [{ len: R.legs[0], items: [] }, { len: hd ? H.tim : R.legs[1], items: [] }] },
-      { legs: [{ els: l0, r: { cut: 0 } }, { els: l1, r: { cut: hd ? H.lng : 0 } }] }, { vecs: [X, Up], trims: [0, A9, 0], dp, ab, header });
+      { legs: [{ els: l0, r: { cut: 0 } }, { els: l1, r: { cut: hd ? H.cut != null ? H.cut : H.lng : 0 } }] }, { vecs: [X, Up], trims: [0, A9, 0], dp, ab, header });
     return;
   }
   if (v3.mode === 'tuyen') {
@@ -1805,7 +1811,13 @@ function renderPumpForm() {
   $('p-meas-l').textContent = side === 'day' ? 'Đo từ mặt bích bơm tới ống góp (nếu có)' : 'Đo từ tim co tới ống góp (nếu có)';
   const h = pHdr(side);
   if (h.dn == null || DN.indexOf(h.dn) < s.i || tableOd(DN.indexOf(h.dn)) == null) h.dn = DN[Math.min(DN.length - 1, s.i + 2)];
-  $('p-href').value = h.ref;
+  if (!h.con) h.con = 'han';
+  if (h.con !== 'tee' && h.ref === 'mat') h.ref = 'tim';
+  $('p-hcon').value = h.con; $('p-href').value = h.ref;
+  { const o = $('p-href').querySelector('[value="mat"]'); o.hidden = o.disabled = h.con !== 'tee'; }
+  $('p-ht-f').hidden = h.con !== 'tee';
+  { const L = pTeeLen(s, h); $('p-ht').value = h.ht != null ? h.ht : (L == null ? '' : mm(L)); $('p-ht').classList.toggle('custom', h.ht != null);
+    $('p-ht-n').textContent = h.ht != null ? '(thợ đo)' : '(tạm: tê hàn + dày bích, nên đo thực tế)'; }
   $('p-hdn').innerHTML = DN.map((d, k) => k >= s.i && tableOd(k) != null ? `<option value="${d}"${d === h.dn ? ' selected' : ''}>DN${d} · Ø${String(tableOd(k)).replace('.', ',')}</option>` : '').join('');
   const items = PUMP[side].items;
   $('p-run').innerHTML = `<li class="anchor"><span class="ic">B</span><div class="nm">Mặt bích ${side === 'day' ? 'đầu đẩy' : 'đầu hút'} của bơm<small>DN${st.pump.dnp}, mốc tính từ đây</small></div><div class="ctl"></div></li>`
@@ -1821,10 +1833,18 @@ function renderPumpForm() {
 
 function pHdr(side) { if (!st.pump.hdr) st.pump.hdr = {}; return st.pump.hdr[side] || (st.pump.hdr[side] = { ref: 'tim', dn: null }); }
 // ống nối từ van lên ống góp: 1 đầu bích ở van, đầu kia cắt yên ngựa hàn vào ống góp
+// tê trên ống góp: tim ống góp → mặt bích chờ ở nhánh (tạm: tâm → đầu tê hàn theo cỡ ống góp + dày bích)
+function pTeeLen(s, h) { if (h.ht != null) return h.ht; const k = DN.indexOf(h.dn), v = k >= 0 ? FIT.weld.tee[k] : null; return v == null ? null : v + s.tf; }
 function pumpHdr(s, side, R) {
   const meas = num($('p-meas')); if (!(meas > 0)) return null;
   const h = pHdr(side), Dh = tableOd(DN.indexOf(h.dn)); if (!Dh) return null;
   const Rh = Dh / 2, r = s.od / 2, tot = R.legs[R.turn ? 1 : 0], off = pOff(s);
+  if (h.con === 'tee') {
+    const Ht = pTeeLen(s, h); if (Ht == null) return null;
+    const tim = h.ref === 'mat' ? meas + Ht : h.ref === 'day' ? meas + Rh : meas;
+    const face = tim - Ht - tot - 2 * s.g, cut = face - 2 * off;      // ống 2 đầu bích: van ↔ mặt bích chờ của tê
+    return { tee: true, tim, Rh, Dh, dn: h.dn, ref: h.ref, meas, Ht, off, face, cut, lng: cut, sht: cut, err: cut <= 0, tam: h.ht == null };
+  }
   const tim = h.ref === 'tim' ? meas : meas + Rh;
   const start = tot + s.g + off;                       // đầu ống trong bích ở van
   const lng = tim - Math.sqrt(Math.max(Rh * Rh - r * r, 0)) - s.w - start;   // 2 bên hông (vuông góc ống góp)
@@ -1894,17 +1914,20 @@ function drawPump(s, side, R) {
   // ống góp và ống nối lên ống góp
   const H = pumpHdr(s, side, R);
   if (H) {
-    const li = turn ? 1 : 0, p0 = at(li, R.legs[li] + s.g), pE = at(li, H.tim - H.Rh), pT = at(li, H.tim);
-    if (!H.err) out += `<rect x="${p0[0] - D / 2}" y="${pE[1]}" width="${D}" height="${p0[1] - pE[1]}" style="${CUT}"/><rect x="${p0[0] - FD / 2}" y="${p0[1] - tf}" width="${FD}" height="${tf}" style="${FL}"/>`;
+    const li = turn ? 1 : 0, p0 = at(li, R.legs[li] + s.g), pE = at(li, H.tee ? H.tim - H.Ht - s.g : H.tim - H.Rh), pT = at(li, H.tim);
+    if (!H.err) out += `<rect x="${p0[0] - D / 2}" y="${pE[1]}" width="${D}" height="${p0[1] - pE[1]}" style="${CUT}"/><rect x="${p0[0] - FD / 2}" y="${p0[1] - tf}" width="${FD}" height="${tf}" style="${FL}"/>`
+      + (H.tee ? `<rect x="${p0[0] - FD / 2}" y="${pE[1]}" width="${FD}" height="${tf}" style="${FL}"/>` : '');
+    if (H.tee) { const pf = at(li, H.tim - H.Ht); out += `<rect x="${pf[0] - D / 2}" y="${pT[1]}" width="${D}" height="${pf[1] - pT[1]}" style="fill:var(--p-mid);stroke:var(--p-lo);stroke-width:2"/><rect x="${pf[0] - FD / 2}" y="${pf[1] - tf}" width="${FD}" height="${tf}" style="${FL}"/>`; }
     const hw = Math.max(FD * 2.4, H.Dh * 3);
     out += `<rect x="${pT[0] - hw / 2}" y="${pT[1] - H.Rh}" width="${hw}" height="${2 * H.Rh}" style="fill:var(--p-mid);stroke:var(--p-lo);stroke-width:2"/>`
       + `<path d="M${pT[0] - hw / 2 - D * .4} ${pT[1]}H${pT[0] + hw / 2 + D * .4}" style="stroke:var(--ink);stroke-width:2;stroke-dasharray:24 8 4 8"/>`
-      + `<text x="${pT[0] + hw / 2 - D * .2}" y="${pT[1] - H.Rh - fs * .4}" text-anchor="end" font-size="${fs}" font-weight="700">Ống góp DN${H.dn}</text>`;
+      + `<text x="${pT[0] + hw / 2 - D * .2}" y="${pT[1] - H.Rh - fs * .4}" text-anchor="end" font-size="${fs}" font-weight="700">Ống góp DN${H.dn}${H.tee ? ' · tê chờ bích' : ''}</text>`;
     box(pT[0] - hw / 2 - D * .4, pT[1] - H.Rh - fs * 1.4); box(pT[0] + hw / 2 + D * .4, pT[1] + H.Rh);
-    if (!H.err) { const ly = (p0[1] + pE[1]) / 2 + fs * .35, lx = p0[0] + FD / 2 + D * .9, t = `Ống nối cắt ${mm(H.lng)}`; out += `<text x="${lx}" y="${ly}" font-size="${fs}" font-weight="700" style="fill:var(--accent)">${t}</text>`; box(lx + t.length * fs * .58, ly); }
+    box(pT[0] + hw / 2 - D * .2 - ('Ống góp DN' + H.dn + (H.tee ? ' · tê chờ bích' : '')).length * fs * .6, pT[1] - H.Rh);
+    if (!H.err) { const ly = (p0[1] + pE[1]) / 2 + fs * .35, lx = p0[0] + FD / 2 + D * .9, t = H.tee ? `Ống nối cắt ${mm(H.cut)} (bích→bích ${mm(H.face)})` : `Ống nối cắt ${mm(H.lng)}`; out += `<text x="${lx}" y="${ly}" font-size="${fs}" font-weight="700" style="fill:var(--accent)">${t}</text>`; box(lx + t.length * fs * .58, ly); }
     // kích thước số đo tới tim / đáy ống góp
     const xx = (turn ? corner[0] : 0) - FD / 2 - D * .8 - fs * 2.2, y0 = turn ? 0 : 0, y1 = at(li, H.meas)[1];
-    out += `<path d="M${xx} ${y0}V${y1}M${xx - 25} ${y0 + 25}L${xx + 25} ${y0 - 25}M${xx - 25} ${y1 + 25}L${xx + 25} ${y1 - 25}M${xx} ${y1}H${pT[0] - hw / 2}" style="stroke:var(--accent);stroke-width:3;fill:none"/><text transform="translate(${xx - fs * .5} ${(y0 + y1) / 2}) rotate(-90)" text-anchor="middle" font-size="${fs}" font-weight="700" style="fill:var(--accent)">${mm(H.meas)} tới ${H.ref === 'tim' ? 'tim' : 'đáy'}</text>`;
+    out += `<path d="M${xx} ${y0}V${y1}M${xx - 25} ${y0 + 25}L${xx + 25} ${y0 - 25}M${xx - 25} ${y1 + 25}L${xx + 25} ${y1 - 25}M${xx} ${y1}H${pT[0] - hw / 2}" style="stroke:var(--accent);stroke-width:3;fill:none"/><text transform="translate(${xx - fs * .5} ${(y0 + y1) / 2}) rotate(-90)" text-anchor="middle" font-size="${fs}" font-weight="700" style="fill:var(--accent)">${mm(H.meas)} tới ${H.ref === 'tim' ? 'tim' : H.ref === 'mat' ? 'mặt bích tê' : 'đáy'}</text>`;
     box(xx - fs * 1.5, y1);
   }
   // kích thước tổng
@@ -1949,7 +1972,13 @@ function renderPump() {
   const H = pumpHdr(s, side, R);
   if (H) {
     if (H.err) html += `<div class="note bad">Khoảng đo ngắn quá, không còn chỗ cho ống nối lên ống góp (thiếu ${mm(-H.sht)} mm). Kiểm tra lại số đo.</div>`;
-    else {
+    else if (H.tee) {
+      html += `<div class="note info"><b>Ống nối lên tê ống góp DN${H.dn}</b>: ống 2 đầu bích, 1 đầu bắt van, 1 đầu bắt mặt bích chờ của tê.<br>`
+        + `Cắt <b>${mm(H.cut)} mm</b>, hàn bích 2 đầu. Đo mặt bích → mặt bích phải đúng <b>${mm(H.face)} mm</b>.<br>`
+        + `<small>Tim ống góp cách ${turn ? 'tim co' : 'mặt bích bơm'} ${mm(H.tim)} mm; tim ống góp → mặt bích chờ ${mm(H.Ht)} mm; đã trừ 2 gioăng ${mm(s.g)}, ${s.fm === 'slip' ? 'ống lùi ' + mm(H.off) : 'dày bích ' + mm(H.off)} × 2.</small></div>`;
+      if (H.tam && H.ref !== 'mat') html += '<div class="note">Khoảng tim ống góp → mặt bích chờ của tê đang để số tạm. Thợ đo thực tế rồi nhập lại, hoặc chọn "Đo tới: Mặt bích chờ của tê" để đo thẳng tới mặt bích.</div>';
+      mtxt = `\nỐNG NỐI LÊN TÊ ỐNG GÓP DN${H.dn}: cắt ${mm(H.cut)} mm, 2 đầu bích, mặt bích → mặt bích ${mm(H.face)} mm`;
+    } else {
       html += `<div class="note info"><b>Ống nối lên ống góp DN${H.dn}</b>: 1 đầu hàn bích bắt vào van, đầu kia cắt yên ngựa hàn vào ống góp.<br>`
         + `Cắt dài nhất <b>${mm(H.lng)} mm</b> (2 bên hông), ngắn nhất <b>${mm(H.sht)} mm</b> (giữa, theo chiều ống góp).<br>`
         + `Hàn bích xong: từ mặt bích tới mũi dài nhất của yên ngựa ${mm(H.face)} mm.<br>`
@@ -2261,8 +2290,10 @@ $('p-lead').textContent = PLEAD[st.pump.side];
 $('p-dnp').addEventListener('change', e => { st.pump.dnp = +e.target.value; renderPumpForm(); renderPump(); save(); });
 $('p-sp').addEventListener('input', e => { const v = num(e.target); st.pump.sp = isFinite(v) && v > 0 ? v : 0; st.pump[st.pump.side].forEach((u, k) => { if (u && PUMP[st.pump.side].items[k].k === 'sp') u.custom = null; }); renderPumpRows(); });
 $('p-spm').addEventListener('change', e => { st.pump.spm = e.target.value; renderPumpRows(); });
+$('p-hcon').addEventListener('change', e => { const h = pHdr(st.pump.side); h.con = e.target.value; if (h.con === 'tee') h.ref = 'mat'; renderPumpForm(); renderPump(); save(); });
+$('p-ht').addEventListener('input', e => { const v = num(e.target), h = pHdr(st.pump.side); h.ht = isFinite(v) && v > 0 ? v : null; e.target.classList.toggle('custom', h.ht != null); $('p-ht-n').textContent = h.ht != null ? '(thợ đo)' : '(tạm: tê hàn + dày bích, nên đo thực tế)'; renderPump(); save(); });
 $('p-href').addEventListener('change', e => { pHdr(st.pump.side).ref = e.target.value; renderPump(); save(); });
-$('p-hdn').addEventListener('change', e => { pHdr(st.pump.side).dn = +e.target.value; renderPump(); save(); });
+$('p-hdn').addEventListener('change', e => { const h = pHdr(st.pump.side); h.dn = +e.target.value; h.ht = null; renderPumpForm(); renderPump(); save(); });
 $('p-meas').addEventListener('input', e => { st.pump.meas[st.pump.side] = e.target.value; renderPump(); save(); });
 // đang gõ ở ô ống chỉ: chỉ cập nhật số ở danh sách, không vẽ lại ô đang gõ
 function renderPumpRows() { renderPump(); save(); }
@@ -2374,6 +2405,6 @@ initStore();
   navigator.serviceWorker.ready.then(() => caches.keys()).then(k => say(k.some(x => x.startsWith('cat-ong-utc-')) ? '✓ Đã lưu trên máy: dùng được khi mất mạng' : 'Đang lưu app về máy…', true));
 })();
 </script>
-<!-- build 202611012100 -->
+<!-- build 202611012200 -->
 </body>
 </html>
