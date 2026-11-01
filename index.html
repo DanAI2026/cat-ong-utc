@@ -310,7 +310,11 @@ svg text{font-family:var(--f-num);fill:var(--ink)}
     <ol class="run" id="p-run"></ol>
     <label class="f"><span id="p-meas-l">Khoảng đo</span><div class="inp"><input id="p-meas" inputmode="decimal" placeholder="bỏ trống nếu không cần"><i>mm</i></div></label>
   </div>
-  <div class="card fig" aria-label="Hình cụm đầu bơm"><svg id="p-svg" viewBox="0 0 360 360" style="max-height:520px"></svg></div>
+  <div class="card fig" aria-label="Hình cụm đầu bơm">
+    <div class="seg" role="group" aria-label="Kiểu xem"><button type="button" data-v3m="bom" data-v3on="0" aria-pressed="true">Bản vẽ</button><button type="button" data-v3m="bom" data-v3on="1" aria-pressed="false">3D xoay được</button></div>
+    <div id="bom-2d"><svg id="p-svg" viewBox="0 0 360 360" style="max-height:520px"></svg></div>
+    <div id="slot-bom"></div>
+  </div>
   <div class="result" id="r-bom" aria-live="polite"></div>
 </section>
 
@@ -1549,6 +1553,8 @@ function build3D(s, rt, R, opts) {
       cyl(a, b, D / 2, mat.steel); cyl(c, at(up, -D * 1.3), D / 2, mat.steel);
     } else if (cat === 'red') {
       cyl(a, b, D / 2, mat.steel, D * .34);
+    } else if (cat === 'redp') {   // côn đầu bơm: đầu nhỏ phía bơm
+      cyl(a.clone().addScaledVector(u, t), b.clone().addScaledVector(u, -t), (opts.dp || D * .7) / 2, mat.steel, D / 2);
     } else {
       body(D * .55, mat.steel); cyl(c, at(up, D * .9), D * .06, mat.dark);
       const g = add(new T.Mesh(new T.CylinderGeometry(D * .36, D * .36, D * .14, 28), mat.steel)); g.position.copy(at(up, D * 1.1)); g.quaternion.setFromUnitVectors(Y, new T.Vector3().crossVectors(u, up).normalize());
@@ -1590,7 +1596,14 @@ function build3D(s, rt, R, opts) {
         // đoạn chẵn ghi phía trên, đoạn lẻ ghi phía dưới để 2 nhãn cạnh nhau không đè
         const lb = add(label3D((el.ext ? 'thêm ' : 'cắt ') + mm(len), el.ext ? '#ffc8a6' : '#ff9a66', fs));
         lb.position.copy(a.clone().lerp(b, .5)).addScaledVector(upOf(u), (k % 2 ? -1 : 1) * (D * .75 + fs * .7));
-      } else if (el.t === 'kpipe' && len > 0) cyl(a, b, D / 2 * 1.01, mat.kp);
+      } else if (el.t === 'kpipe' && len > 0) {
+        cyl(a, b, D / 2 * 1.01, el.lbl ? mat.cut : mat.kp);
+        if (el.lbl) {   // ống chỉ đầu bơm: bích 2 đầu và nhãn chiều dài cắt
+          if (el.off > 0) { flg(a.clone().addScaledVector(u, -el.off / 2), u, el.off); flg(b.clone().addScaledVector(u, el.off / 2), u, el.off); }
+          const sd = Math.abs(u.y) > .9 ? new T.Vector3(1, 0, 0) : upOf(u), lb = add(label3D(el.lbl, '#ff9a66', fs * .8));
+          lb.position.copy(a.clone().lerp(b, .5)).addScaledVector(sd, D * 1.4 + fs);
+        }
+      }
       else if (i > 0 && i < els.length - 1 && len > 0) {
         let cat = PIC[el.t] || el.t;
         if (el.t === 'pi') { const it = projItem(el.id); cat = it ? it.cat : 'other'; }
@@ -1620,7 +1633,7 @@ function build3D(s, rt, R, opts) {
   else if (rt.A.t === 'exist') cyl(P[0], P[0].clone().addScaledVector(u0, -D * 1.5), D / 2, mat.steel);
   if (rt.B.t === 'flg') equip(PB, un); else if (rt.B.t === 'exist') cyl(PB, PB.clone().addScaledVector(un, D * 1.5), D / 2, mat.steel);
   // nhãn mốc đặt ở phía ngoài 2 đầu tuyến, không chồng lên nhãn số đo
-  [['A', P[0], u0.clone().negate()], ['B', PB, un]].forEach(([t, p, out]) => { const lb = add(label3D(t, '#ffffff', fs * 1.1)); lb.position.copy(p).addScaledVector(out, D * 1.9 + fs * .6); });
+  [[(opts.ab || 'AB')[0], P[0], u0.clone().negate()], [(opts.ab || 'AB')[1], PB, un]].forEach(([t, p, out]) => { if (!t) return; const lb = add(label3D(t, '#ffffff', fs * 1.1)); lb.position.copy(p).addScaledVector(out, D * 1.9 + fs * .6); });
   // lưới sàn để định hướng
   const bb = new T.Box3().setFromObject(G), size = bb.getSize(new T.Vector3()), span = Math.max(size.x, size.y, size.z, 6 * D);
   const grid = new T.GridHelper(span * 1.6, 16, 0x7d8c99, 0x3a4752); grid.material.transparent = true; grid.material.opacity = .45;
@@ -1637,7 +1650,7 @@ function setView3(k) {
   v3.theta = V[0]; v3.phi = V[1]; if (v3.center) { v3.target.copy(v3.center); v3.radius = v3.fit(); } place3D();
 }
 // một khung 3D dùng chung, chuyển sang tab nào đang bật 3D
-const V3MODES = ['tuyen', 'lech', 'nhieu'];
+const V3MODES = ['tuyen', 'bom', 'lech', 'nhieu'];
 async function show3D(mode, on) {
   V3MODES.forEach(m => {
     const me = on && m === mode;
@@ -1660,6 +1673,24 @@ function rebuild3D() {
   const s = S();
   if (v3.mode === 'nhieu') { build3D(s, st.route, calcRoute(s, st.route)); return; }
   const X = new v3.T.Vector3(1, 0, 0);
+  if (v3.mode === 'bom') {
+    const side = st.pump.side, R = calcPump(s, side); if (R.err) return;
+    const Up = new v3.T.Vector3(0, 1, 0), off = pOff(s), dp = tableOd(DN.indexOf(st.pump.dnp)) || s.od * .7;
+    const node = r => r.t === 'sp' ? { t: 'kpipe', custom: r.cut, lbl: 'ống chỉ ' + mm(r.cut), off } : r.t === 'red' || r.t === 'redx' ? { t: 'redp', custom: r.L } : { t: r.t, custom: r.L };
+    const A = { t: 'flg' }, B = { t: 'exist' };
+    if (!v3.framed) { v3.theta = .75; v3.phi = 1.25; }
+    if (!R.turn) {
+      build3D(s, { A, B, legs: [{ len: R.legs[0], items: [] }] }, { legs: [{ els: [A, ...R.rows.map(node), B], r: { cut: 0 } }] }, { vecs: [Up], dp, ab: ['BƠM', 'Ống góp'] });
+      return;
+    }
+    const ei = R.rows.findIndex(r => r.t === 'elb'), A9 = R.rows[ei].L;
+    // co có bích: tâm co → mặt bích A9; mốc bích 0 mm sau co để tính đúng gioăng + bích của món kế tiếp
+    const l0 = [A, ...R.rows.slice(0, ei).map(node), { t: 'cE90', custom: A9 }];
+    const l1 = [{ t: 'cE90', custom: A9 - s.g }, { t: 'flg' }, ...R.rows.slice(ei + 1).map(node), B];
+    build3D(s, { A, B, legs: [{ len: R.legs[0], items: [] }, { len: R.legs[1], items: [] }] },
+      { legs: [{ els: l0, r: { cut: 0 } }, { els: l1, r: { cut: 0 } }] }, { vecs: [X, Up], trims: [0, A9, 0], dp, ab: ['BƠM', 'Ống góp'] });
+    return;
+  }
   if (v3.mode === 'tuyen') {
     const els = runEls(s), meas = num($('meas')) || 0;
     build3D(s, { A: st.A, B: st.B, legs: [{ len: meas, items: els.slice(1, -1) }] }, { legs: [{ els, r: calcRun(s, els, meas) }] }, { vecs: [X] });
@@ -1880,6 +1911,7 @@ function renderPump() {
     if (rem > 0) mtxt = `\nTừ mặt bích van tới mốc đo còn: ${mm(rem)} mm`;
   }
   el.innerHTML = html + copyBtn('bom');
+  if (v3.mode === 'bom') schedule3D();
   texts.bom = `${pj ? 'DỰ ÁN ' + pj.name + '\n' : ''}CỤM ${side === 'day' ? 'ĐẦU ĐẨY' : 'ĐẦU HÚT'} BƠM, miệng bơm DN${st.pump.dnp}, ống DN${DN[s.i]}\n`
     + R.rows.map(r => `- ${pName(side, r.k)}${r.t === 'sp' ? ` cắt ${mm(r.cut)}, bích→bích ${mm(r.L)}` : ': ' + mm(r.L)}`).join('\n')
     + (turn ? `\n=> NGANG mặt bích bơm → tim co: ${mm(R.legs[0])} mm\n=> ĐỨNG tim co → mặt bích van: ${mm(R.legs[1])} mm` : `\n=> MẶT BÍCH BƠM → MẶT BÍCH RA VAN: ${mm(R.legs[0])} mm`) + mtxt;
@@ -2175,7 +2207,7 @@ $('sp-mode').addEventListener('change', e => { st.sp.mode = e.target.value; rend
 // đầu bơm
 const PLEAD = { day: 'Từ mặt bích đầu đẩy của bơm đi thẳng lên: côn thu, khớp nối mềm, ống chỉ, van 1 chiều, ống chỉ, van tay quay. Sửa chiều dài từng món theo hàng thực tế.',
   hut: 'Từ mặt bích đầu hút của bơm đi ngang: côn thu lệch tâm, khớp chống rung, ống chỉ, co 90° quay lên, ống chỉ, Y lọc, ống chỉ, van cổng tay quay. Sửa chiều dài từng món theo hàng thực tế.' };
-const pumpSide = () => { $('p-lead').textContent = PLEAD[st.pump.side]; renderPumpForm(); renderPump(); save(); };
+const pumpSide = () => { v3.framed = false; $('p-lead').textContent = PLEAD[st.pump.side]; renderPumpForm(); renderPump(); save(); };
 document.querySelectorAll('[data-pside]').forEach(b => b.addEventListener('click', () => { st.pump.side = b.dataset.pside; pumpSide(); }));
 $('p-lead').textContent = PLEAD[st.pump.side];
 $('p-dnp').addEventListener('change', e => { st.pump.dnp = +e.target.value; renderPumpForm(); renderPump(); save(); });
@@ -2292,6 +2324,6 @@ initStore();
   navigator.serviceWorker.ready.then(() => caches.keys()).then(k => say(k.some(x => x.startsWith('cat-ong-utc-')) ? '✓ Đã lưu trên máy: dùng được khi mất mạng' : 'Đang lưu app về máy…', true));
 })();
 </script>
-<!-- build 202611011900 -->
+<!-- build 202611012000 -->
 </body>
 </html>
