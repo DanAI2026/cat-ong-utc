@@ -6,6 +6,9 @@
 - **Đầu bơm**: cụm đầu đẩy (côn, khớp mềm, ống chỉ, van 1 chiều, ống chỉ, van tay quay) và đầu hút (côn lệch tâm, khớp chống rung, ống chỉ, co 90°, ống chỉ, Y lọc, ống chỉ, van cổng), ra chiều dài cụm và ống chỉ cần cắt.
 - **Lệch tâm 2 co**: 2 ống lệch nhau, ra ống giữa 2 co và phần phải nối thêm hoặc cắt bớt.
 - **Tuyến nhiều đoạn**: tuyến có nhiều co, vẽ mặt đứng hoặc isometric.
+- **Khai triển ống**: cắt yên ngựa (tê hàn chế, nhánh xiên, lệch tâm) và co tôm, ra bảng vạch dấu theo chu vi.
+- **Độ dốc, giá treo**: chênh cao, cao độ từng giá treo, khoảng cách giá và tải ống đầy nước.
+- **Ống gió**: ống vuông, cút vuông, côn thu vuông, ống tròn, côn tròn, cút tôm tròn; quy đổi vuông ↔ tròn và vận tốc gió.
 - **Vật tư dự án**: chiều dài van, co, tê theo đúng hãng của từng dự án; xuất/nhập file để chia sẻ.
 
 Ống thép tráng kẽm, thép đen, uPVC, PPR; DN15 đến DN300; đơn vị mm. Chạy được khi không có mạng sau lần mở đầu tiên.
