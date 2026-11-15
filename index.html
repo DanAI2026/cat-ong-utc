@@ -203,6 +203,9 @@ svg text{font-family:var(--f-num);fill:var(--ink)}
     <button role="tab" id="t-bom" aria-controls="bom" aria-selected="false">Đầu bơm</button>
     <button role="tab" id="t-lech" aria-controls="lech" aria-selected="false">Lệch tâm 2 co</button>
     <button role="tab" id="t-nhieu" aria-controls="nhieu" aria-selected="false">Tuyến nhiều đoạn</button>
+    <button role="tab" id="t-kt" aria-controls="kt" aria-selected="false">Khai triển ống</button>
+    <button role="tab" id="t-doc" aria-controls="doc" aria-selected="false">Độ dốc, giá treo</button>
+    <button role="tab" id="t-gio" aria-controls="gio" aria-selected="false">Ống gió</button>
     <button role="tab" id="t-vattu" aria-controls="vattu" aria-selected="false">Vật tư dự án</button>
     <button role="tab" id="t-tra" aria-controls="tra" aria-selected="false">Bảng tra</button>
   </nav>
@@ -211,7 +214,7 @@ svg text{font-family:var(--f-num);fill:var(--ink)}
 <main class="wrap stack">
 <div class="note info" id="install" hidden style="display:flex;gap:10px;align-items:center;justify-content:space-between"><span id="install-t">Cài "Cắt Ống UTC" lên màn hình chính để mở nhanh và dùng không cần mạng.</span><button class="btn" id="install-b" type="button" style="height:40px">Cài</button></div>
 
-<section class="card" aria-label="Ống đang dùng">
+<section class="card" id="pipecard" aria-label="Ống đang dùng">
   <h2>Ống đang dùng</h2>
   <div class="projbar">
     <label class="f"><span>Dự án <small>(hãng vật tư theo dự án)</small></span><div class="inp sel"><select id="proj"></select></div></label>
@@ -326,6 +329,75 @@ svg text{font-family:var(--f-num);fill:var(--ink)}
     <div id="slot-bom"></div>
   </div>
   <div class="result" id="r-bom" aria-live="polite"></div>
+</section>
+
+<!-- KHAI TRIỂN ỐNG -->
+<section class="stack" id="kt" role="tabpanel" aria-labelledby="t-kt" style="padding-top:0" hidden>
+  <div class="card">
+    <h2>Khai triển cắt ống</h2>
+    <div class="seg" role="group" aria-label="Kiểu cắt">
+      <button type="button" data-kt="yn" aria-pressed="true">Cắt yên ngựa (tê hàn)</button>
+      <button type="button" data-kt="ct" aria-pressed="false">Co tôm</button>
+    </div>
+    <p class="lead" id="kt-lead"></p>
+    <div class="grid" id="kt-yn">
+      <label class="f full"><span>Ống chính <small>(ống nhánh là ống đang dùng ở trên)</small></span><div class="inp sel"><select id="kt-main"></select></div></label>
+      <label class="f"><span>Góc giữa 2 ống</span><div class="inp"><input id="kt-ang" inputmode="decimal" value="90"><i>độ</i></div></label>
+      <label class="f"><span>Lệch tâm <small>(0 = đồng tâm)</small></span><div class="inp"><input id="kt-e" inputmode="decimal" value="0"><i>mm</i></div></label>
+    </div>
+    <div class="grid" id="kt-ct" hidden>
+      <label class="f"><span>Góc co</span><div class="inp"><input id="kt-phi" inputmode="decimal" value="90"><i>độ</i></div></label>
+      <label class="f"><span>Số mối hàn</span><div class="inp sel"><select id="kt-n"><option value="1">1 mối (2 đốt)</option><option value="2">2 mối (3 đốt)</option><option value="3" selected>3 mối (4 đốt)</option><option value="4">4 mối (5 đốt)</option><option value="5">5 mối (6 đốt)</option></select></div></label>
+      <label class="f"><span>Bán kính cong <small>(theo tim)</small></span><div class="inp"><input id="kt-r" inputmode="decimal" placeholder="= 1,5 × Ø"><i>mm</i></div></label>
+      <label class="f"><span>Đoạn thẳng thêm ở 2 đầu</span><div class="inp"><input id="kt-tail" inputmode="decimal" value="0"><i>mm</i></div></label>
+    </div>
+    <label class="f"><span>Chia chu vi ống thành</span><div class="inp sel"><select id="kt-div"><option value="12">12 phần</option><option value="16" selected>16 phần</option><option value="24">24 phần</option><option value="32">32 phần</option></select></div></label>
+  </div>
+  <div class="card fig" aria-label="Hình khai triển"><svg id="kt-svg" viewBox="0 0 360 200"></svg></div>
+  <div class="result" id="r-kt" aria-live="polite"></div>
+</section>
+
+<!-- ĐỘ DỐC, GIÁ TREO -->
+<section class="stack" id="doc" role="tabpanel" aria-labelledby="t-doc" style="padding-top:0" hidden>
+  <div class="card">
+    <h2>Độ dốc ống</h2>
+    <p class="lead">Nhập chiều dài tuyến và độ dốc. Tool ra chênh cao và cao độ đáy giá treo tại từng vị trí, tính từ đầu tuyến.</p>
+    <div class="grid">
+      <label class="f"><span>Chiều dài tuyến</span><div class="inp"><input id="d-L" inputmode="decimal" value="12000"><i>mm</i></div></label>
+      <label class="f"><span>Độ dốc</span><div class="inp"><input id="d-i" inputmode="decimal" value="1"><i>%</i></div></label>
+      <label class="f"><span>Cao độ đầu tuyến <small>(tùy chọn)</small></span><div class="inp"><input id="d-z" inputmode="decimal" placeholder="vd 3200"><i>mm</i></div></label>
+      <label class="f"><span>Dốc về phía</span><div class="inp sel"><select id="d-dir"><option value="down">Cuối tuyến thấp hơn</option><option value="up">Cuối tuyến cao hơn</option></select></div></label>
+      <label class="f full"><span>Khoảng cách giá treo <small>(để trống = theo bảng ống thép)</small></span><div class="inp"><input id="d-s" inputmode="decimal" placeholder="theo bảng"><i>mm</i></div></label>
+    </div>
+  </div>
+  <div class="result" id="r-doc" aria-live="polite"></div>
+  <div class="card" id="c-treo"></div>
+</section>
+
+<!-- ỐNG GIÓ -->
+<section class="stack" id="gio" role="tabpanel" aria-labelledby="t-gio" style="padding-top:0" hidden>
+  <div class="card">
+    <h2>Ống gió vuông và tròn</h2>
+    <label class="f"><span>Hạng mục</span><div class="inp sel"><select id="g-kind">
+      <optgroup label="Ống gió vuông (chữ nhật)">
+        <option value="vuong">Ống vuông thẳng</option>
+        <option value="cutv">Cút vuông (co cong)</option>
+        <option value="giamv">Côn thu vuông (giảm)</option>
+      </optgroup>
+      <optgroup label="Ống gió tròn">
+        <option value="tron">Ống tròn thẳng</option>
+        <option value="cont">Côn thu tròn</option>
+        <option value="cutt">Cút tôm tròn</option>
+      </optgroup>
+      <optgroup label="Tra nhanh">
+        <option value="qd">Quy đổi vuông ↔ tròn, vận tốc gió</option>
+      </optgroup>
+    </select></div></label>
+    <p class="lead" id="g-lead"></p>
+    <div class="grid" id="g-in"></div>
+  </div>
+  <div class="card fig" aria-label="Hình khai triển ống gió"><svg id="g-svg" viewBox="0 0 360 200"></svg></div>
+  <div class="result" id="r-gio" aria-live="polite"></div>
 </section>
 
 <!-- LỆCH TÂM -->
@@ -783,7 +855,7 @@ try {
 } catch (e) {}
 st.i = DN.indexOf(st.dnv); if (st.i < 0) { st.dnv = 150; st.i = DN.indexOf(150); }
 if (!MAT[st.mat]) st.mat = 'gi';
-function save() { try { st.dnv = DN[st.i]; const d = Object.assign({}, st, { inputs: {} }); ['pg', 'pw', 'ps', 'pc', 'pt', 'pfm', 'meas', 'o-ang', 'o-X', 'o-Y', 'o-pos', 'o-L', 'o-H', 'o-a', 'o-b', 'o-a2', 'o-b2', 'o-dx', 'o-dy', 'o-p3', 'o-dx3', 'o-dy3'].forEach(k => d.inputs[k] = $(k).value); localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} }
+function save() { try { st.dnv = DN[st.i]; const d = Object.assign({}, st, { inputs: {} }); ['pg', 'pw', 'ps', 'pc', 'pt', 'pfm', 'meas', 'o-ang', 'o-X', 'o-Y', 'o-pos', 'o-L', 'o-H', 'o-a', 'o-b', 'o-a2', 'o-b2', 'o-dx', 'o-dy', 'o-p3', 'o-dx3', 'o-dy3', 'kt-ang', 'kt-e', 'kt-phi', 'kt-n', 'kt-r', 'kt-tail', 'kt-div', 'd-L', 'd-i', 'd-z', 'd-dir', 'd-s'].forEach(k => d.inputs[k] = $(k).value); localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} }
 if (st.inputs) Object.keys(st.inputs).forEach(k => { if ($(k)) $(k).value = st.inputs[k]; });
 lib.pid = st.pid;
 if (!st.route || !st.route.legs) st.route = defRoute();
@@ -2035,8 +2107,271 @@ function renderPump() {
     + (turn ? `\n=> ${W0.toUpperCase()} mặt bích bơm → tim co: ${mm(R.legs[0])} mm\n=> ${W1.toUpperCase()} tim co → mặt bích van: ${mm(R.legs[1])} mm` : `\n=> MẶT BÍCH BƠM → MẶT BÍCH RA VAN: ${mm(R.legs[0])} mm`) + mtxt;
 }
 
-function renderAll() { fillPipe(); renderList(); renderRouteForm(); renderPumpForm(); renderRun(); renderPump(); renderOffset(); renderRoute(); renderRef(); save(); }
-function renderCalc() { renderRun(); renderPump(); renderOffset(); renderRoute(); renderRef(); save(); }
+// ---------- CÁC TAB CÔNG CỤ: khai triển ống, độ dốc và giá treo, ống gió ----------
+const f1 = x => (Math.round(x * 10) / 10).toFixed(1).replace('.', ',');
+const m2 = x => (x / 1e6).toFixed(2).replace('.', ',');
+const nv = id => { const x = parseFloat(String($(id).value).replace(',', '.')); return isFinite(x) ? x : NaN; };
+// mẫu khai triển trên chu vi ống: ys[k] tại điểm k (k = 0..N-1, chia đều chu vi), vẽ đúng tỉ lệ ngang
+function tplSvg(svg, circ, ys, cap) {
+  const N = ys.length, W = 320, x0 = 20, ymax = Math.max(...ys, 1), Hp = Math.max(50, Math.min(150, ymax * W / circ)), sy = Hp / ymax, base = 30 + Hp;
+  const X = k => x0 + k * W / N, Y = y => base - y * sy;
+  let pts = ys.map((y, k) => `${X(k).toFixed(1)},${Y(y).toFixed(1)}`).concat([`${X(N).toFixed(1)},${Y(ys[0]).toFixed(1)}`]);
+  let out = `<path d="M${x0} ${base}L${pts.join('L')}L${x0 + W} ${base}Z" style="fill:var(--accent-soft);stroke:none"/>`;
+  out += `<polyline points="${pts.join(' ')}" style="fill:none;stroke:var(--accent);stroke-width:2"/>`;
+  out += `<path d="M${x0} ${base}H${x0 + W}" style="stroke:var(--ink);stroke-width:1.5"/>`;
+  const step = N > 16 ? 2 : 1;
+  for (let k = 0; k <= N; k++) {
+    const y = ys[k % N];
+    out += `<path d="M${X(k).toFixed(1)} ${base}V${Y(y).toFixed(1)}" style="stroke:var(--muted);stroke-width:.6;stroke-dasharray:2 2"/>`;
+    if (k % step === 0) out += `<text x="${X(k).toFixed(1)}" y="${base + 12}" text-anchor="middle" font-size="9" style="fill:var(--muted)">${k % N}</text>`
+      + `<text x="${X(k).toFixed(1)}" y="${(Y(y) - 4).toFixed(1)}" text-anchor="middle" font-size="8.5" font-weight="700">${mm(y)}</text>`;
+  }
+  out += `<text x="${x0}" y="14" font-size="10.5" font-weight="700">${esc(cap)}</text>`;
+  out += `<text x="${x0 + W}" y="${base + 26}" text-anchor="end" font-size="9.5" style="fill:var(--muted)">đường mốc · chu vi ${mm(circ)} mm</text>`;
+  svg.setAttribute('viewBox', `0 0 360 ${base + 34}`); svg.innerHTML = out;
+}
+function ordTable(N, circ, cols, rows) {
+  return '<div class="tbl"><table class="ref"><tr><th>Điểm</th><th>Cung từ điểm 0</th>' + cols.map(c => `<th>${c}</th>`).join('') + '</tr>'
+    + rows.map((r, k) => `<tr><td>${k}</td><td>${mm(k * circ / N)}</td>${r.map(v => `<td><b>${mm(v)}</b></td>`).join('')}</tr>`).join('') + '</table></div>';
+}
+
+// ===== KHAI TRIỂN ỐNG =====
+if (!st.kt) st.kt = { mode: 'yn', main: null };
+function renderKt() {
+  const s = S(), mode = st.kt.mode, N = +$('kt-div').value, d = s.od, r = d / 2, circ = Math.PI * d;
+  document.querySelectorAll('[data-kt]').forEach(b => b.setAttribute('aria-pressed', b.dataset.kt === mode));
+  $('kt-yn').hidden = mode !== 'yn'; $('kt-ct').hidden = mode !== 'ct';
+  if (st.kt.main == null || DN.indexOf(st.kt.main) < s.i || tableOd(DN.indexOf(st.kt.main)) == null) st.kt.main = DN[Math.min(DN.length - 1, s.i + 2)];
+  $('kt-main').innerHTML = DN.map((dn, k) => k >= s.i && tableOd(k) != null ? `<option value="${dn}"${dn === st.kt.main ? ' selected' : ''}>DN${dn} · Ø${String(tableOd(k)).replace('.', ',')}</option>` : '').join('');
+  const el = $('r-kt'), pipe = `DN${DN[s.i]} Ø${String(d).replace('.', ',')}`;
+  if (mode === 'yn') {
+    $('kt-lead').textContent = `Cắt đầu ống nhánh ${pipe} ôm theo ống chính (tê hàn chế, nhánh xiên). Vạch 1 đường mốc vòng quanh ống, chia chu vi thành ${N} phần, đo từ mốc ra đầu ống theo bảng rồi nối các điểm.`;
+    const R = tableOd(DN.indexOf(st.kt.main)) / 2, a = rad(nv('kt-ang')), e = nv('kt-e') || 0;
+    if (!(a > rad(10) && a <= rad(90))) { el.innerHTML = '<h2>Khai triển</h2><div class="note bad">Góc giữa 2 ống nhập từ 10° tới 90°.</div>'; $('kt-svg').innerHTML = ''; texts.kt = ''; return; }
+    const t = [];
+    for (let k = 0; k < N; k++) {
+      const th = 2 * Math.PI * k / N, v = r * Math.sin(th) + e;
+      if (Math.abs(v) > R) { el.innerHTML = '<h2>Khai triển</h2><div class="note bad">Ống nhánh lệch ra ngoài ống chính. Giảm độ lệch tâm hoặc chọn ống chính lớn hơn.</div>'; $('kt-svg').innerHTML = ''; texts.kt = ''; return; }
+      t.push((Math.sqrt(R * R - v * v) - r * Math.cos(th) * Math.cos(a)) / Math.sin(a));
+    }
+    const tmax = Math.max(...t), ys = t.map(x => tmax - x), depth = Math.max(...ys);
+    tplSvg($('kt-svg'), circ, ys, `Ống nhánh DN${DN[s.i]} vào ống chính DN${st.kt.main} (mm)`);
+    el.innerHTML = '<h2>Khai triển yên ngựa</h2>'
+      + `<div class="big"><div><span>Độ sâu yên ngựa</span><b>${mm(depth)}<small>mm</small></b></div><div><span>Chu vi ống nhánh</span><b style="font-size:34px">${mm(circ)}<small>mm</small></b></div></div>`
+      + `<div class="note info">Điểm 0: ${Math.abs(deg(a) - 90) < .1 ? 'đường sinh nằm theo chiều ống chính (chỗ ngắn nhất)' : 'phía góc tù (gót), chỗ dài nhất'}. Đi vòng quanh ống theo một chiều, mỗi điểm cách nhau ${f1(circ / N)} mm trên chu vi. Số trong bảng là khoảng từ đường mốc tới mép cắt.</div>`
+      + ordTable(N, circ, ['Mốc → mép cắt'], ys.map(y => [y]))
+      + '<div class="note">Tính theo đường kính ngoài 2 ống. Cắt xong mài vát mép hàn. Lỗ khoét trên ống chính: đặt ống nhánh đã cắt lên đúng vị trí, vạch theo mép trong rồi khoét.</div>' + copyBtn('kt');
+    texts.kt = `CẮT YÊN NGỰA ống nhánh ${pipe} vào ống chính DN${st.kt.main}, góc ${f1(deg(a))}°, lệch tâm ${mm(e)}\nChia ${N} phần, mỗi phần ${f1(circ / N)} mm trên chu vi\n` + ys.map((y, k) => `Điểm ${k}: ${mm(y)}`).join('\n');
+    return;
+  }
+  // co tôm: N mối hàn, mỗi mối cắt nghiêng β = Φ / (2N); đốt giữa dài gấp đôi nửa đốt
+  const phi = nv('kt-phi'), J = +$('kt-n').value, Rb = nv('kt-r') > 0 ? nv('kt-r') : 1.5 * d, tail = nv('kt-tail') || 0;
+  $('kt-lead').textContent = `Co tôm ghép từ ống ${pipe}: ${J} mối hàn, ${J + 1} đốt (${J - 1} đốt giữa, 2 đốt đầu). Vạch đường mốc vòng quanh ống, đo theo bảng từ mốc ra mỗi phía.`;
+  if (!(phi > 0 && phi <= 180)) { el.innerHTML = '<h2>Khai triển</h2><div class="note bad">Góc co nhập từ 1° tới 180°.</div>'; $('kt-svg').innerHTML = ''; texts.kt = ''; return; }
+  if (Rb < r) { el.innerHTML = '<h2>Khai triển</h2><div class="note bad">Bán kính cong phải lớn hơn bán kính ống.</div>'; $('kt-svg').innerHTML = ''; texts.kt = ''; return; }
+  const b = rad(phi / (2 * J)), tb = Math.tan(b), half = [];
+  for (let k = 0; k < N; k++) half.push((Rb + r * Math.cos(2 * Math.PI * k / N)) * tb);
+  tplSvg($('kt-svg'), circ, half, `Nửa đốt: từ vạch giữa ra mép cắt (mm)`);
+  const cte = Rb * Math.tan(rad(phi / 2)) + tail;
+  el.innerHTML = '<h2>Khai triển co tôm</h2>'
+    + `<div class="big"><div><span>Góc cắt mỗi mối</span><b style="font-size:34px">${f1(phi / (2 * J))}°</b></div><div><span>Tâm co → đầu co</span><b style="font-size:34px">${mm(cte)}<small>mm</small></b></div></div>`
+    + '<table class="kv">'
+    + (J > 1 ? `<tr><td>Đốt giữa (${J - 1} đốt): lưng / bụng</td><td>${mm(2 * (Rb + r) * tb)} / ${mm(2 * (Rb - r) * tb)}</td></tr>` : '')
+    + `<tr><td>Đốt đầu (2 đốt): lưng / bụng${tail ? ', gồm đoạn thẳng ' + mm(tail) : ''}</td><td>${mm(tail + (Rb + r) * tb)} / ${mm(tail + (Rb - r) * tb)}</td></tr>`
+    + `<tr><td>Bán kính cong theo tim</td><td>${mm(Rb)}</td></tr><tr><td>Tổng ống cần (chưa tính hao cắt)</td><td>${mm(2 * J * Rb * tb + 2 * tail)}</td></tr></table>`
+    + `<div class="note info">Điểm 0 là lưng co (phía ngoài). Đốt giữa: vạch đường giữa đốt, đo ra 2 phía mỗi phía theo cột "Nửa đốt". Đốt đầu: vạch mốc cách đầu ống ${mm(tail)} mm, đo từ mốc ra mép cắt. Cắt đốt liền nhau trên cùng cây ống, xoay đốt 180° khi ghép.</div>`
+    + ordTable(N, circ, ['Nửa đốt', 'Đốt giữa (cả 2 phía)', 'Đốt đầu'], half.map(h => [h, 2 * h, tail + h])) + copyBtn('kt');
+  texts.kt = `CO TÔM ống ${pipe}, góc ${f1(phi)}°, ${J} mối hàn, bán kính tim ${mm(Rb)}\nGóc cắt mỗi mối ${f1(phi / (2 * J))}°; tâm co → đầu co ${mm(cte)} mm\n`
+    + (J > 1 ? `Đốt giữa: lưng ${mm(2 * (Rb + r) * tb)}, bụng ${mm(2 * (Rb - r) * tb)}\n` : '') + `Đốt đầu: lưng ${mm(tail + (Rb + r) * tb)}, bụng ${mm(tail + (Rb - r) * tb)}\n`
+    + half.map((h, k) => `Điểm ${k}: nửa đốt ${mm(h)}`).join('\n');
+}
+
+// ===== ĐỘ DỐC, GIÁ TREO =====
+// khoảng cách giá treo tối đa cho ống thép dẫn nước (m), tham khảo MSS SP-69; cỡ không có trong bảng lấy theo cỡ nhỏ hơn liền kề
+const HANG = { 15: 2.1, 20: 2.1, 25: 2.1, 32: 2.1, 40: 2.7, 50: 3.0, 65: 3.4, 80: 3.7, 90: 4.0, 100: 4.3, 125: 4.9, 150: 5.2, 200: 5.8, 250: 6.7, 300: 7.0, 350: 7.6, 400: 8.2, 450: 8.5, 500: 9.1, 600: 9.8 };
+function kgFull(od, wall, steel) {   // kg/m ống + nước đầy
+  const di = od - 2 * wall, w = 7.854e-4 * di * di;
+  return { pipe: steel ? 0.02466 * wall * (od - wall) : null, water: w };
+}
+function renderDoc() {
+  const s = S(), m = MAT[st.mat], L = nv('d-L'), i = nv('d-i'), z0 = nv('d-z'), down = $('d-dir').value === 'down';
+  const hs = m.steel ? HANG[DN[s.i]] : null, sp = nv('d-s') > 0 ? nv('d-s') : hs ? hs * 1000 : NaN;
+  const el = $('r-doc');
+  if (!(L > 0) || !(i >= 0)) { el.innerHTML = '<h2>Độ dốc</h2><div class="note bad">Nhập chiều dài tuyến và độ dốc.</div>'; texts.doc = ''; }
+  else {
+    const dz = L * i / 100, sg2 = down ? -1 : 1;
+    let html = '<h2>Độ dốc</h2>' + `<div class="big"><div><span>Chênh cao đầu → cuối</span><b>${mm(dz)}<small>mm</small></b></div>`
+      + (isFinite(z0) ? `<div><span>Cao độ cuối tuyến</span><b style="font-size:34px">${mm(z0 + sg2 * dz)}<small>mm</small></b></div>` : '') + '</div>';
+    html += `<div class="note info">Mỗi mét dài ${down ? 'hạ' : 'nâng'} ${f1(i * 10)} mm.</div>`;
+    let txt = `ĐỘ DỐC ${f1(i)}%, dài ${mm(L)} mm: chênh cao ${mm(dz)} mm`;
+    if (sp > 0) {
+      const n = Math.ceil(L / sp), rows = [];
+      for (let k = 0; k <= n; k++) { const x = Math.min(k * sp, L); rows.push([x, sg2 * x * i / 100]); if (x >= L) break; }
+      html += `<h2 style="font-size:13px">Vị trí giá treo, cách nhau ${mm(sp)} mm${nv('d-s') > 0 ? '' : ' (theo bảng)'}</h2>`
+        + '<div class="tbl"><table class="ref"><tr><th>Giá</th><th>Cách đầu tuyến</th><th>Chênh so với đầu</th>' + (isFinite(z0) ? '<th>Cao độ</th>' : '') + '</tr>'
+        + rows.map((r, k) => `<tr><td>${k + 1}</td><td>${mm(r[0])}</td><td>${r[1] > 0 ? '+' : r[1] < 0 ? '−' : ''}${mm(Math.abs(r[1]))}</td>${isFinite(z0) ? `<td><b>${mm(z0 + r[1])}</b></td>` : ''}</tr>`).join('') + '</table></div>';
+      txt += '\n' + rows.map((r, k) => `Giá ${k + 1}: cách đầu ${mm(r[0])}, ${isFinite(z0) ? 'cao độ ' + mm(z0 + r[1]) : 'chênh ' + mm(r[1])}`).join('\n');
+    } else html += '<div class="note">Nhập khoảng cách giá treo để ra cao độ từng giá (ống nhựa không có trong bảng ống thép).</div>';
+    el.innerHTML = html + copyBtn('doc'); texts.doc = txt;
+  }
+  // bảng giá treo
+  const k = kgFull(s.od, s.wall, m.steel), tot = (k.pipe || 0) + k.water;
+  let h = '<h2>Giá treo ống</h2>';
+  h += `<table class="kv"><tr><td>Ống đang dùng</td><td>DN${DN[s.i]} · ${esc(pipeName())}</td></tr>`
+    + (k.pipe != null ? `<tr><td>Ống thép</td><td>${f1(k.pipe)} kg/m</td></tr>` : '')
+    + `<tr><td>Nước đầy ống</td><td>${f1(k.water)} kg/m</td></tr>`
+    + (k.pipe != null ? `<tr class="sum"><td>Ống đầy nước</td><td>${f1(tot)} kg/m</td></tr>` : '')
+    + (hs ? `<tr><td>Khoảng cách giá tối đa</td><td>${f1(hs)} m</td></tr><tr class="sum"><td>Tải 1 giá (ống đầy nước × khoảng cách)</td><td>${mm(tot * hs)} kg</td></tr>` : '') + '</table>';
+  if (m.steel) h += '<div class="tbl"><table class="ref"><tr><th>Cỡ</th><th>Giá cách tối đa</th></tr>' + Object.keys(HANG).map(dn => `<tr${+dn === DN[s.i] ? ' style="background:var(--accent-soft)"' : ''}><td>DN${dn}</td><td>${f1(HANG[dn])} m</td></tr>`).join('') + '</table></div>'
+    + '<div class="note">Bảng tham khảo MSS SP-69 cho ống thép dẫn nước. Có van, cụm thiết bị nặng hoặc chỗ đổi hướng thì đặt thêm giá sát bên. Theo hồ sơ thiết kế nếu khác.</div>';
+  else h += '<div class="note">Ống nhựa: khoảng cách giá theo hướng dẫn của hãng ống, thường ngắn hơn ống thép nhiều.</div>';
+  $('c-treo').innerHTML = h;
+}
+
+// ===== ỐNG GIÓ =====
+const GF = {
+  vuong: { lead: 'Khai triển 1 đoạn ống gió vuông: chiều dài tôn trải ra theo chu vi và diện tích tôn.',
+    f: [['W', 'Rộng W', 500], ['H', 'Cao H', 300], ['L', 'Dài đoạn ống', 1200], ['m', 'Mép ghép cộng thêm', 40]] },
+  cutv: { lead: 'Cút vuông bán kính: 2 tấm má hình quạt, tấm lưng và tấm bụng uốn cong. W là cạnh nằm trên má cong (cạnh đổi hướng).',
+    f: [['W', 'Rộng W (cạnh đổi hướng)', 500], ['H', 'Cao H', 300], ['Ri', 'Bán kính trong', 250], ['phi', 'Góc cút', 90, 'độ']] },
+  giamv: { lead: 'Côn thu vuông từ W1×H1 xuống W2×H2. Tool ra hình thật 4 tấm hình thang để vạch lên tôn.',
+    f: [['W1', 'Rộng đầu lớn W1', 800], ['H1', 'Cao đầu lớn H1', 400], ['W2', 'Rộng đầu nhỏ W2', 500], ['H2', 'Cao đầu nhỏ H2', 300], ['L', 'Dài côn L', 400],
+      ['kieu', 'Kiểu côn', 'dt', null, [['dt', 'Đồng tâm'], ['pd', 'Phẳng đáy'], ['pd1', 'Phẳng đáy và phẳng 1 bên']]]] },
+  tron: { lead: 'Khai triển 1 đoạn ống gió tròn cuốn từ tôn tấm.',
+    f: [['D', 'Đường kính D', 300], ['L', 'Dài đoạn ống', 1200], ['m', 'Mép ghép dọc', 30]] },
+  cont: { lead: 'Côn thu tròn đồng tâm: khai triển thành hình quạt vành khăn. Tool ra 2 bán kính quay compa và góc quạt.',
+    f: [['D1', 'Đường kính lớn D1', 400], ['D2', 'Đường kính nhỏ D2', 250], ['L', 'Dài côn L', 300]] },
+  cutt: { lead: 'Cút tròn ghép nhiều đốt (cút tôm). 2 đốt đầu là nửa đốt. Tool ra bảng vạch dấu theo chu vi.',
+    f: [['D', 'Đường kính D', 300], ['R', 'Bán kính cong (tim)', null], ['phi', 'Góc cút', 90, 'độ'], ['n', 'Số đốt', 5, 'đốt'], ['tail', 'Cổ thẳng ở 2 đầu', 50], ['div', 'Chia chu vi', 16, 'phần']] },
+  qd: { lead: 'Đường kính ống tròn tương đương ống vuông (cùng tổn thất ma sát) và vận tốc gió theo lưu lượng.',
+    f: [['W', 'Rộng W', 600], ['H', 'Cao H', 400], ['Q', 'Lưu lượng', 5000, 'm³/h'], ['Dq', 'Đường kính tròn để so (tùy chọn)', null]] },
+};
+if (!st.gio) st.gio = { kind: 'vuong', v: {} };
+function gv(k) { const x = parseFloat(String(st.gio.v[k] != null ? st.gio.v[k] : '').replace(',', '.')); if (isFinite(x)) return x; const d = GF[st.gio.kind].f.find(f => f[0] === k); return d && typeof d[2] === 'number' ? d[2] : NaN; }
+function renderGioForm() {
+  const g = GF[st.gio.kind]; $('g-kind').value = st.gio.kind; $('g-lead').textContent = g.lead;
+  $('g-in').innerHTML = g.f.map(([k, l, def, u, opts]) => opts
+    ? `<label class="f"><span>${l}</span><div class="inp sel"><select data-g="${k}">${opts.map(o => `<option value="${o[0]}"${(st.gio.v[k] || def) === o[0] ? ' selected' : ''}>${o[1]}</option>`).join('')}</select></div></label>`
+    : `<label class="f"><span>${l}</span><div class="inp"><input data-g="${k}" inputmode="decimal" value="${st.gio.v[k] != null ? esc(st.gio.v[k]) : def != null ? def : ''}"${def == null ? ` placeholder="${k === 'R' ? '= 1,5 × D' : 'bỏ trống'}"` : ''}><i>${u || 'mm'}</i></div></label>`).join('');
+}
+function renderGio() {
+  const k = st.gio.kind, el = $('r-gio'), svg = $('g-svg'), fig = svg.closest('.card');
+  fig.hidden = false;
+  const bad = msg => { el.innerHTML = '<h2>Ống gió</h2><div class="note bad">' + msg + '</div>'; svg.innerHTML = ''; texts.gio = ''; };
+  const ok = (html, txt) => { el.innerHTML = '<h2>' + esc($('g-kind').selectedOptions[0].text) + '</h2>' + html + copyBtn('gio'); texts.gio = txt; };
+  const T = (x, y, t, o) => `<text x="${x}" y="${y}" font-size="${(o && o.fs) || 10}" text-anchor="${(o && o.a) || 'middle'}"${o && o.b ? ' font-weight="700"' : ''} style="fill:${(o && o.c) || 'var(--ink)'}">${esc(t)}</text>`;
+  const SH = 'fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.5';
+  if (k === 'vuong' || k === 'tron') {
+    const L = gv('L'), mg = gv('m') || 0, per = k === 'vuong' ? 2 * (gv('W') + gv('H')) : Math.PI * gv('D');
+    if (!(per > 0 && L > 0)) return bad('Nhập đủ kích thước.');
+    const wid = per + mg, sc = 320 / Math.max(wid, L * 1.2), w = wid * sc, h = L * sc;
+    let o = `<rect x="20" y="20" width="${w}" height="${h}" style="${SH}"/>`;
+    if (k === 'vuong') { let x = 20; [gv('W'), gv('H'), gv('W'), gv('H')].forEach((a, i) => { x += a * sc; if (i < 3 || mg) o += `<path d="M${x} 20V${20 + h}" style="stroke:var(--accent);stroke-dasharray:5 3"/>`; o += T(x - a * sc / 2, 20 + h / 2, mm(a)); }); }
+    if (mg) o += T(20 + w - mg * sc / 2, 14, 'mép ' + mm(mg), { fs: 9, c: 'var(--muted)' });
+    o += T(20 + w / 2, 20 + h + 16, `trải ra ${mm(wid)} mm`, { b: 1 }) + T(14, 20 + h / 2, mm(L), { a: 'end', fs: 9 });
+    svg.setAttribute('viewBox', `-30 0 ${Math.max(360, w + 50)} ${h + 40}`); svg.innerHTML = o;
+    return ok(`<div class="big"><div><span>Tôn trải ra (kể mép)</span><b>${mm(wid)}<small>mm</small></b></div><div><span>Diện tích tôn</span><b style="font-size:34px">${m2(wid * L)}<small>m²</small></b></div></div>`
+      + `<table class="kv"><tr><td>Chu vi ống</td><td>${mm(per)}</td></tr><tr><td>Diện tích bề mặt ống (không kể mép)</td><td>${m2(per * L)} m²</td></tr><tr><td>Mỗi mét dài ống</td><td>${m2(per * 1000)} m²/m</td></tr></table>`,
+      `${k === 'vuong' ? `ỐNG GIÓ VUÔNG ${mm(gv('W'))}×${mm(gv('H'))}` : `ỐNG GIÓ TRÒN Ø${mm(gv('D'))}`}, dài ${mm(L)}: tôn trải ${mm(wid)} mm (kể mép ${mm(mg)}), ${m2(wid * L)} m²; ${m2(per * 1000)} m²/m dài`);
+  }
+  if (k === 'cutv') {
+    const W = gv('W'), H = gv('H'), Ri = gv('Ri'), ph = gv('phi');
+    if (!(W > 0 && H > 0 && Ri >= 0 && ph > 0 && ph <= 180)) return bad('Nhập đủ kích thước, góc từ 1° tới 180°.');
+    const Ro = Ri + W, a = rad(ph), lung = Ro * a, bung = Ri * a, cheek = a / 2 * (Ro * Ro - Ri * Ri), area = 2 * cheek + (lung + bung) * H;
+    // má: quạt vành khăn tâm O, bắt đầu theo trục x
+    const sc = 300 / (2 * Ro), cx0 = a > Math.PI / 2 ? 30 + Ro * sc : 30, P = (rr, t) => [cx0 + rr * Math.cos(t) * sc, 30 + Ro * sc - rr * Math.sin(t) * sc];
+    const p1 = P(Ri, 0), p2 = P(Ro, 0), p3 = P(Ro, a), p4 = P(Ri, a), lg = a > Math.PI ? 1 : 0;
+    let o = `<path d="M${p1}L${p2}A${Ro * sc} ${Ro * sc} 0 ${lg} 0 ${p3}L${p4}A${Ri * sc} ${Ri * sc} 0 ${lg} 1 ${p1}Z" style="${SH}"/>`;
+    o += `<circle cx="${cx0}" cy="${30 + Ro * sc}" r="3" style="fill:var(--ink)"/>` + T(cx0, 30 + Ro * sc + 14, 'tâm', { fs: 9 });
+    o += T((p1[0] + p2[0]) / 2, p1[1] + 14, 'W ' + mm(W), { fs: 10, b: 1 });
+    const pm = P(Ro, a / 2), pi2 = P(Ri, a / 2);
+    o += T(pm[0] + 8, pm[1], 'R ngoài ' + mm(Ro), { a: 'start', fs: 10 }) + (Ri > 0 ? T(pi2[0] - 4, pi2[1], 'R trong ' + mm(Ri), { a: 'end', fs: 9 }) : '');
+    svg.setAttribute('viewBox', `0 0 ${Math.max(360, cx0 + Ro * sc + 110)} ${(a > Math.PI ? 2 * Ro * sc : Ro * sc) + 60}`); svg.innerHTML = o;
+    return ok(`<div class="big"><div><span>Tấm lưng (dài × rộng)</span><b style="font-size:30px">${mm(lung)} × ${mm(H)}</b></div><div><span>Tấm bụng</span><b style="font-size:30px">${mm(bung)} × ${mm(H)}</b></div></div>`
+      + `<table class="kv"><tr><td>Má (2 tấm): quay compa R trong / R ngoài</td><td>${mm(Ri)} / ${mm(Ro)}</td></tr><tr><td>Góc quạt má</td><td>${f1(ph)}°</td></tr>`
+      + `<tr><td>Dây cung ngoài để kiểm tra má</td><td>${mm(2 * Ro * Math.sin(a / 2))}</td></tr><tr><td>Bán kính tim</td><td>${mm(Ri + W / 2)}</td></tr>`
+      + `<tr class="sum"><td>Diện tích tôn (chưa kể mép ghép)</td><td>${m2(area)} m²</td></tr></table>`
+      + '<div class="note info">Má vạch bằng compa từ cùng 1 tâm. Lưng và bụng cắt tấm chữ nhật rồi uốn theo má. Cộng thêm mép ghép theo kiểu nối của xưởng.</div>',
+      `CÚT VUÔNG ${mm(W)}×${mm(H)}, R trong ${mm(Ri)}, góc ${f1(ph)}°\nMá 2 tấm: R trong ${mm(Ri)}, R ngoài ${mm(Ro)}, góc ${f1(ph)}°\nLưng ${mm(lung)}×${mm(H)}; bụng ${mm(bung)}×${mm(H)}\nDiện tích ${m2(area)} m² (chưa kể mép)`);
+  }
+  if (k === 'giamv') {
+    const W1 = gv('W1'), H1 = gv('H1'), W2 = gv('W2'), H2 = gv('H2'), L = gv('L'), kv = st.gio.v.kieu || 'dt';
+    if (!(W1 > 0 && H1 > 0 && W2 > 0 && H2 > 0 && L > 0)) return bad('Nhập đủ kích thước.');
+    const dy = kv === 'dt' ? 0 : (H2 - H1) / 2, dx = kv === 'pd1' ? (W2 - W1) / 2 : 0;
+    const hyp = d => Math.sqrt(L * L + d * d);
+    // mỗi tấm: cạnh lớn, cạnh nhỏ, chiều cao thật, khoảng thụt 2 bên của cạnh nhỏ
+    const P = [
+      { n: 'Tấm trên', a: W1, b: W2, h: hyp(H2 / 2 + dy - H1 / 2), l: -W2 / 2 + dx + W1 / 2, r: W1 / 2 - W2 / 2 - dx },
+      { n: 'Tấm dưới', a: W1, b: W2, h: hyp(-H2 / 2 + dy + H1 / 2), l: -W2 / 2 + dx + W1 / 2, r: W1 / 2 - W2 / 2 - dx },
+      { n: 'Tấm hông trái', a: H1, b: H2, h: hyp(-W2 / 2 + dx + W1 / 2), l: -H2 / 2 + dy + H1 / 2, r: H1 / 2 - H2 / 2 - dy },
+      { n: 'Tấm hông phải', a: H1, b: H2, h: hyp(W1 / 2 - W2 / 2 - dx), l: -H2 / 2 + dy + H1 / 2, r: H1 / 2 - H2 / 2 - dy }];
+    const big = Math.max(W1, H1, ...P.map(p => p.h)), sc = 150 / big;
+    let o = '';
+    P.forEach((p, i) => {
+      const ox = 20 + (i % 2) * 175, oy = 34 + Math.floor(i / 2) * (big * sc + 62), A = [ox, oy + p.h * sc], B = [ox + p.a * sc, oy + p.h * sc], C = [ox + (p.a - p.r) * sc, oy], D = [ox + p.l * sc, oy];
+      o += `<path d="M${A}L${B}L${C}L${D}Z" style="${SH}"/>` + T(ox + p.a * sc / 2, oy + p.h * sc + 12, mm(p.a), { fs: 9 }) + T(ox + (p.l + (p.a - p.r)) / 2 * sc, oy - 3, mm(p.b), { fs: 9 })
+        + T(ox + p.a * sc / 2, oy + p.h * sc / 2 + 3, 'cao ' + mm(p.h), { fs: 9, b: 1 }) + T(ox, oy - 18, p.n, { a: 'start', fs: 10, b: 1, c: 'var(--muted)' });
+    });
+    svg.setAttribute('viewBox', `0 0 360 ${34 + 2 * (big * sc + 62)}`); svg.innerHTML = o;
+    const area = P.reduce((s2, p) => s2 + (p.a + p.b) / 2 * p.h, 0);
+    return ok('<div class="tbl"><table class="ref"><tr><th>Tấm</th><th>Cạnh lớn</th><th>Cạnh nhỏ</th><th>Cao thật</th><th>Thụt trái / phải</th></tr>'
+      + P.map(p => `<tr><td>${p.n}</td><td>${mm(p.a)}</td><td>${mm(p.b)}</td><td><b>${mm(p.h)}</b></td><td>${mm(p.l)} / ${mm(p.r)}</td></tr>`).join('') + '</table></div>'
+      + `<table class="kv"><tr class="sum"><td>Diện tích tôn (chưa kể mép ghép)</td><td>${m2(area)} m²</td></tr></table>`
+      + '<div class="note info">Vạch cạnh lớn, dựng đường vuông góc cao bằng "cao thật", trên đó đo thụt trái / phải để có cạnh nhỏ. Thụt âm là cạnh nhỏ lòi ra ngoài.</div>',
+      `CÔN THU VUÔNG ${mm(W1)}×${mm(H1)} → ${mm(W2)}×${mm(H2)}, dài ${mm(L)} (${{ dt: 'đồng tâm', pd: 'phẳng đáy', pd1: 'phẳng đáy + 1 bên' }[kv]})\n`
+      + P.map(p => `${p.n}: ${mm(p.a)} → ${mm(p.b)}, cao thật ${mm(p.h)}, thụt ${mm(p.l)}/${mm(p.r)}`).join('\n') + `\nDiện tích ${m2(area)} m²`);
+  }
+  if (k === 'cont') {
+    const D1 = gv('D1'), D2 = gv('D2'), L = gv('L');
+    if (!(D1 > D2 && D2 > 0 && L > 0)) return bad('Đường kính lớn phải lớn hơn đường kính nhỏ, nhập đủ chiều dài.');
+    const Ls = Math.hypot(L, (D1 - D2) / 2), R1 = Ls * D1 / (D1 - D2), R2 = R1 - Ls, ang = 180 * D1 / R1, a = rad(ang);
+    const area = Math.PI * (D1 + D2) / 2 * Ls;
+    const sc = 150 / R1, cx = 180, cy = 20, P = (rr, t) => [cx + rr * sc * Math.sin(t), cy + rr * sc * Math.cos(t)], lg = a > Math.PI ? 1 : 0;
+    const q1 = P(R2, -a / 2), q2 = P(R1, -a / 2), q3 = P(R1, a / 2), q4 = P(R2, a / 2);
+    let o = `<path d="M${q1}L${q2}A${R1 * sc} ${R1 * sc} 0 ${lg} 0 ${q3}L${q4}A${R2 * sc} ${R2 * sc} 0 ${lg} 1 ${q1}Z" style="${SH}"/><circle cx="${cx}" cy="${cy}" r="3" style="fill:var(--ink)"/>`
+      + T(cx, cy - 6, 'tâm compa', { fs: 9 }) + T(cx, cy + R1 * sc + 14, `R lớn ${mm(R1)} · R nhỏ ${mm(R2)} · góc ${f1(ang)}°`, { fs: 10, b: 1 });
+    const top = Math.min(0, cy + R1 * sc * Math.cos(a / 2) - 10); svg.setAttribute('viewBox', `0 ${top} 360 ${cy + R1 * sc + 24 - top}`); svg.innerHTML = o;
+    return ok(`<div class="big"><div><span>R lớn (quay compa)</span><b style="font-size:34px">${mm(R1)}<small>mm</small></b></div><div><span>R nhỏ</span><b style="font-size:34px">${mm(R2)}<small>mm</small></b></div><div><span>Góc quạt</span><b style="font-size:34px">${f1(ang)}°</b></div></div>`
+      + `<table class="kv"><tr><td>Đường sinh (cạnh xiên thật)</td><td>${mm(Ls)}</td></tr>`
+      + (ang < 360 ? `<tr><td>Dây cung lớn / nhỏ để kiểm tra</td><td>${mm(2 * R1 * Math.sin(a / 2))} / ${mm(2 * R2 * Math.sin(a / 2))}</td></tr>` : '')
+      + `<tr><td>Cung lớn / nhỏ (= chu vi 2 đầu)</td><td>${mm(Math.PI * D1)} / ${mm(Math.PI * D2)}</td></tr><tr class="sum"><td>Diện tích tôn (chưa kể mép)</td><td>${m2(area)} m²</td></tr></table>`
+      + (ang > 300 ? '<div class="note">Góc quạt lớn: nên cắt làm 2 nửa, mỗi nửa góc ' + f1(ang / 2) + '°.</div>' : '') + '<div class="note info">Cộng thêm mép ghép dọc và mép nối 2 đầu theo kiểu nối của xưởng.</div>',
+      `CÔN TRÒN Ø${mm(D1)} → Ø${mm(D2)}, dài ${mm(L)}\nR lớn ${mm(R1)}, R nhỏ ${mm(R2)}, góc quạt ${f1(ang)}°, đường sinh ${mm(Ls)}\nDiện tích ${m2(area)} m²`);
+  }
+  if (k === 'cutt') {
+    const D = gv('D'), R = gv('R') > 0 ? gv('R') : 1.5 * D, ph = gv('phi'), n = Math.round(gv('n')), tail = gv('tail') || 0, N = Math.max(8, Math.round(gv('div') / 4) * 4 || 16), r = D / 2;
+    if (!(D > 0 && ph > 0 && ph <= 180 && n >= 2)) return bad('Nhập đủ kích thước, góc từ 1° tới 180°, số đốt từ 2.');
+    if (R < r) return bad('Bán kính cong phải lớn hơn bán kính ống.');
+    const J = n - 1, tb = Math.tan(rad(ph / (2 * J))), circ = Math.PI * D, half = [];
+    for (let i = 0; i < N; i++) half.push((R + r * Math.cos(2 * Math.PI * i / N)) * tb);
+    tplSvg(svg, circ, half, 'Nửa đốt: từ vạch giữa đốt ra mép cắt');
+    return ok(`<div class="big"><div><span>Đốt giữa: lưng / bụng</span><b style="font-size:30px">${mm(2 * (R + r) * tb)} / ${mm(2 * (R - r) * tb)}</b></div><div><span>Góc cắt mỗi mối</span><b style="font-size:30px">${f1(ph / (2 * J))}°</b></div></div>`
+      + `<table class="kv"><tr><td>Số đốt</td><td>${n - 2} đốt giữa + 2 nửa đốt</td></tr><tr><td>Đốt đầu: lưng / bụng (gồm cổ ${mm(tail)})</td><td>${mm(tail + (R + r) * tb)} / ${mm(tail + (R - r) * tb)}</td></tr>`
+      + `<tr><td>Bán kính tim / tâm → đầu cút</td><td>${mm(R)} / ${mm(R * Math.tan(rad(ph / 2)) + tail)}</td></tr><tr><td>Chu vi (trải tôn)</td><td>${mm(circ)}</td></tr>`
+      + `<tr class="sum"><td>Diện tích tôn (chưa kể mép)</td><td>${m2(circ * (2 * J * R * tb + 2 * tail))} m²</td></tr></table>`
+      + ordTable(N, circ, ['Nửa đốt', 'Đốt giữa', 'Đốt đầu'], half.map(h => [h, 2 * h, tail + h]))
+      + '<div class="note info">Điểm 0 là lưng cút. Trải tôn theo chu vi, chia đều số phần, đo từ vạch giữa ra 2 phía theo cột "Nửa đốt" rồi nối thành đường cong. Đốt liền nhau cắt chung một đường.</div>',
+      `CÚT TÔM TRÒN Ø${mm(D)}, R ${mm(R)}, góc ${f1(ph)}°, ${n} đốt\nĐốt giữa lưng ${mm(2 * (R + r) * tb)}, bụng ${mm(2 * (R - r) * tb)}; đốt đầu lưng ${mm(tail + (R + r) * tb)}, bụng ${mm(tail + (R - r) * tb)}\n`
+      + half.map((h, i) => `Điểm ${i}: nửa đốt ${mm(h)}`).join('\n'));
+  }
+  if (k === 'qd') {
+    fig.hidden = true;
+    const W = gv('W'), H = gv('H'), Q = gv('Q'), Dq = gv('Dq');
+    if (!(W > 0 && H > 0)) return bad('Nhập kích thước ống vuông.');
+    const De = 1.30 * Math.pow(W * H, .625) / Math.pow(W + H, .25), vr = Q > 0 ? Q / 3600 / (W * H / 1e6) : NaN, vd = Q > 0 ? Q / 3600 / (Math.PI * De * De / 4e6) : NaN;
+    const vq = Q > 0 && Dq > 0 ? Q / 3600 / (Math.PI * Dq * Dq / 4e6) : NaN;
+    return ok(`<div class="big"><div><span>Tròn tương đương</span><b>Ø${mm(De)}<small>mm</small></b></div>${isFinite(vr) ? `<div><span>Vận tốc trong ống vuông</span><b style="font-size:34px">${f1(vr)}<small>m/s</small></b></div>` : ''}</div>`
+      + `<table class="kv"><tr><td>Tiết diện ống vuông</td><td>${(W * H / 1e6).toFixed(3).replace('.', ',')} m²</td></tr><tr><td>Tỉ lệ cạnh</td><td>${f1(Math.max(W, H) / Math.min(W, H))} : 1</td></tr>`
+      + (isFinite(vd) ? `<tr><td>Vận tốc trong ống tròn Ø${mm(De)}</td><td>${f1(vd)} m/s</td></tr>` : '') + (isFinite(vq) ? `<tr><td>Vận tốc trong ống tròn Ø${mm(Dq)}</td><td>${f1(vq)} m/s</td></tr>` : '') + '</table>'
+      + (Math.max(W, H) / Math.min(W, H) > 4 ? '<div class="note">Tỉ lệ cạnh lớn hơn 4:1, ống dẹt, tổn thất lớn. Kiểm tra lại với thiết kế.</div>' : '')
+      + '<div class="note">Quy đổi theo công thức đường kính tương đương cùng tổn thất ma sát (ASHRAE). Kích thước ống thi công theo hồ sơ thiết kế.</div>',
+      `ỐNG ${mm(W)}×${mm(H)} ~ tròn Ø${mm(De)}` + (isFinite(vr) ? `; Q ${mm(Q)} m³/h: ${f1(vr)} m/s` : ''));
+  }
+}
+function renderTools() { renderKt(); renderDoc(); renderGio(); }
+
+function renderAll() { fillPipe(); renderList(); renderRouteForm(); renderPumpForm(); renderRun(); renderPump(); renderOffset(); renderRoute(); renderRef(); renderTools(); save(); }
+function renderCalc() { renderRun(); renderPump(); renderOffset(); renderRoute(); renderRef(); renderTools(); save(); }
 
 // ---------- kho vật tư: kho chung (db) nếu có, nếu không thì lưu trên máy ----------
 const store = { db: null, assets: null, unsubItems: null, local: { projects: [], items: {} } };
@@ -2368,6 +2703,14 @@ $('p-run').addEventListener('change', e => {
   const u = pUser(st.pump.side, +k); u.t = e.target.value; u.custom = null;
   renderPumpForm(); renderPump(); save();
 });
+// công cụ: khai triển ống, độ dốc, ống gió
+document.querySelectorAll('[data-kt]').forEach(b => b.addEventListener('click', () => { st.kt.mode = b.dataset.kt; renderKt(); save(); }));
+$('kt-main').addEventListener('change', e => { st.kt.main = +e.target.value; renderKt(); save(); });
+['kt-ang', 'kt-e', 'kt-phi', 'kt-n', 'kt-r', 'kt-tail', 'kt-div'].forEach(id => $(id).addEventListener(id === 'kt-n' || id === 'kt-div' ? 'change' : 'input', () => { renderKt(); save(); }));
+['d-L', 'd-i', 'd-z', 'd-dir', 'd-s'].forEach(id => $(id).addEventListener(id === 'd-dir' ? 'change' : 'input', () => { renderDoc(); save(); }));
+$('g-kind').addEventListener('change', e => { st.gio.kind = e.target.value; renderGioForm(); renderGio(); save(); });
+['input', 'change'].forEach(ev => $('g-in').addEventListener(ev, e => { const k = e.target.dataset.g; if (!k) return; st.gio.v[k] = e.target.value; renderGio(); save(); }));
+renderGioForm();
 $('add').addEventListener('change', e => {
   const v = e.target.value; if (!v) return;
   st.mid.push(v.startsWith('pi:') ? { t: 'pi', id: v.slice(3), custom: null } : { t: v, custom: null });
@@ -2418,10 +2761,11 @@ $('rt-addleg').addEventListener('click', () => {
   L.push({ dir: ['L', 'R'].includes(last) ? 'D' : 'L', len: 1000, items: [{ t: 'pipe' }] });
   renderRouteForm(); renderRoute(); save();
 });
-const TABS = ['tuyen', 'bom', 'lech', 'nhieu', 'vattu', 'tra'];
+const TABS = ['tuyen', 'bom', 'lech', 'nhieu', 'kt', 'doc', 'gio', 'vattu', 'tra'];
 function show(id) {
   document.querySelectorAll('nav.tabs button').forEach(b => b.setAttribute('aria-selected', b.getAttribute('aria-controls') === id));
   TABS.forEach(k => $(k).hidden = k !== id);
+  $('pipecard').hidden = id === 'gio';   // ống gió không dùng thông số ống nước
 }
 document.querySelectorAll('nav.tabs button').forEach(b => b.addEventListener('click', () => show(b.getAttribute('aria-controls'))));
 window.addEventListener('hashchange', () => { const k = location.hash.slice(1); if (TABS.includes(k)) show(k); });
@@ -2465,6 +2809,6 @@ initStore();
   navigator.serviceWorker.ready.then(() => caches.keys()).then(k => say(k.some(x => x.startsWith('cat-ong-utc-')) ? '✓ Đã lưu trên máy: dùng được khi mất mạng' : 'Đang lưu app về máy…', true));
 })();
 </script>
-<!-- build 202611141000 -->
+<!-- build 202611151000 -->
 </body>
 </html>
