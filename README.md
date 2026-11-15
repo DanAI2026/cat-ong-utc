@@ -8,7 +8,9 @@
 - **Tuyến nhiều đoạn**: tuyến có nhiều co, vẽ mặt đứng hoặc isometric.
 - **Khai triển ống**: cắt yên ngựa (tê hàn chế, nhánh xiên, lệch tâm) và co tôm, ra bảng vạch dấu theo chu vi.
 - **Độ dốc, giá treo**: chênh cao, cao độ từng giá treo, khoảng cách giá và tải ống đầy nước.
-- **Ống gió**: ống vuông, cút vuông, côn thu vuông, ống tròn, côn tròn, cút tôm tròn; quy đổi vuông ↔ tròn và vận tốc gió.
+- **Khai triển ống gió**: ống vuông, cút vuông, côn thu vuông, ống tròn, côn tròn, cút tôm tròn; cổ rẽ nhánh; quy đổi vuông ↔ tròn và vận tốc gió.
+- **Quy cách ống gió**: tra tôn, kiểu nối, gia cường, giá treo theo bảng trên bản vẽ (thường và chống cháy MaKu), tính vật tư 1 tuyến.
+- **Trục đứng ống gió**: chia đoạn, cao độ mối nối, báo mối nối rơi vào sàn, số giá đỡ mỗi tầng.
 - **Vật tư dự án**: chiều dài van, co, tê theo đúng hãng của từng dự án; xuất/nhập file để chia sẻ.
 
 Ống thép tráng kẽm, thép đen, uPVC, PPR; DN15 đến DN300; đơn vị mm. Chạy được khi không có mạng sau lần mở đầu tiên.
