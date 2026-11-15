@@ -205,7 +205,9 @@ svg text{font-family:var(--f-num);fill:var(--ink)}
     <button role="tab" id="t-nhieu" aria-controls="nhieu" aria-selected="false">Tuyến nhiều đoạn</button>
     <button role="tab" id="t-kt" aria-controls="kt" aria-selected="false">Khai triển ống</button>
     <button role="tab" id="t-doc" aria-controls="doc" aria-selected="false">Độ dốc, giá treo</button>
-    <button role="tab" id="t-gio" aria-controls="gio" aria-selected="false">Ống gió</button>
+    <button role="tab" id="t-gio" aria-controls="gio" aria-selected="false">Khai triển ống gió</button>
+    <button role="tab" id="t-gioqc" aria-controls="gioqc" aria-selected="false">Quy cách ống gió</button>
+    <button role="tab" id="t-giotd" aria-controls="giotd" aria-selected="false">Trục đứng ống gió</button>
     <button role="tab" id="t-vattu" aria-controls="vattu" aria-selected="false">Vật tư dự án</button>
     <button role="tab" id="t-tra" aria-controls="tra" aria-selected="false">Bảng tra</button>
   </nav>
@@ -383,6 +385,7 @@ svg text{font-family:var(--f-num);fill:var(--ink)}
         <option value="vuong">Ống vuông thẳng</option>
         <option value="cutv">Cút vuông (co cong)</option>
         <option value="giamv">Côn thu vuông (giảm)</option>
+        <option value="nhanh">Cổ rẽ nhánh (theo bản vẽ)</option>
       </optgroup>
       <optgroup label="Ống gió tròn">
         <option value="tron">Ống tròn thẳng</option>
@@ -398,6 +401,50 @@ svg text{font-family:var(--f-num);fill:var(--ink)}
   </div>
   <div class="card fig" aria-label="Hình khai triển ống gió"><svg id="g-svg" viewBox="0 0 360 200"></svg></div>
   <div class="result" id="r-gio" aria-live="polite"></div>
+</section>
+
+<!-- QUY CÁCH ỐNG GIÓ -->
+<section class="stack" id="gioqc" role="tabpanel" aria-labelledby="t-gioqc" style="padding-top:0" hidden>
+  <div class="card">
+    <h2>Quy cách và vật tư ống gió vuông</h2>
+    <p class="lead">Tra quy cách theo cạnh lớn của ống (bảng "Yêu cầu kỹ thuật chế tạo ống gió" trên bản vẽ) và tính vật tư cho 1 tuyến ống.</p>
+    <div class="grid">
+      <label class="f"><span>Rộng W</span><div class="inp"><input id="q-W" inputmode="decimal" value="750"><i>mm</i></div></label>
+      <label class="f"><span>Cao H</span><div class="inp"><input id="q-H" inputmode="decimal" value="1000"><i>mm</i></div></label>
+      <label class="f"><span>Chiều dài tuyến</span><div class="inp"><input id="q-L" inputmode="decimal" value="20"><i>m</i></div></label>
+      <label class="f"><span>Tuyến đi</span><div class="inp sel"><select id="q-dir"><option value="ngang">Ngang (treo trần)</option><option value="dung">Đứng (trục đứng)</option></select></div></label>
+      <label class="f full"><span>Loại ống</span><div class="inp sel"><select id="q-loai">
+        <option value="thuong">Ống tôn mạ kẽm thường</option>
+        <option value="maku">Chống cháy MaKu trong nhà (EI30, EI45)</option>
+        <option value="makungoai">Chống cháy MaKu ngoài trời (thêm tôn 0,58 bọc ngoài)</option>
+      </select></div></label>
+      <label class="f"><span>Dài 1 đoạn ống</span><div class="inp"><input id="q-seg" inputmode="decimal" value="1120"><i>mm</i></div></label>
+      <label class="f"><span>Ty treo dài <small>(trần → đáy ống)</small></span><div class="inp"><input id="q-ty" inputmode="decimal" placeholder="tùy chọn"><i>mm</i></div></label>
+      <label class="f full"><span>Thép góc treo dài hơn ống mỗi bên <small>(tạm, sửa theo thực tế)</small></span><div class="inp"><input id="q-ext" inputmode="decimal" value="100"><i>mm</i></div></label>
+    </div>
+  </div>
+  <div class="result" id="r-gioqc" aria-live="polite"></div>
+  <details class="card more"><summary>Bảng quy cách theo bản vẽ</summary><div id="q-tbl"></div></details>
+</section>
+
+<!-- TRỤC ĐỨNG ỐNG GIÓ -->
+<section class="stack" id="giotd" role="tabpanel" aria-labelledby="t-giotd" style="padding-top:0" hidden>
+  <div class="card">
+    <h2>Chia đoạn trục đứng ống gió</h2>
+    <p class="lead">Chia trục đứng thành các đoạn ống, ra cao độ từng mối nối và báo mối nối nào rơi vào sàn. Giá đỡ đặt ở mỗi tầng, thêm giá giữa tầng nếu tầng cao hơn khoảng cách cho phép.</p>
+    <div class="grid">
+      <label class="f"><span>Rộng W</span><div class="inp"><input id="v-W" inputmode="decimal" value="750"><i>mm</i></div></label>
+      <label class="f"><span>Cao H</span><div class="inp"><input id="v-H" inputmode="decimal" value="1000"><i>mm</i></div></label>
+      <label class="f"><span>Chiều cao tầng</span><div class="inp"><input id="v-fh" inputmode="decimal" value="4450"><i>mm</i></div></label>
+      <label class="f"><span>Số tầng trục đi qua</span><div class="inp"><input id="v-n" inputmode="decimal" value="4"><i>tầng</i></div></label>
+      <label class="f"><span>Thêm phía trên tầng cuối</span><div class="inp"><input id="v-top" inputmode="decimal" value="0"><i>mm</i></div></label>
+      <label class="f"><span>Dài 1 đoạn ống</span><div class="inp"><input id="v-seg" inputmode="decimal" value="1110"><i>mm</i></div></label>
+      <label class="f"><span>Không để mối nối cách mặt sàn trong khoảng</span><div class="inp"><input id="v-gap" inputmode="decimal" value="150"><i>mm</i></div></label>
+      <label class="f"><span>Cách chia đoạn</span><div class="inp sel"><select id="v-odd"><option value="auto">Tự tránh sàn (cắt ngắn đoạn dưới sàn)</option><option value="top">Đoạn lẻ trên cùng</option><option value="bot">Đoạn lẻ dưới cùng</option></select></div></label>
+    </div>
+  </div>
+  <div class="card fig" aria-label="Hình trục đứng"><svg id="v-svg" viewBox="0 0 360 400" style="max-height:640px"></svg></div>
+  <div class="result" id="r-giotd" aria-live="polite"></div>
 </section>
 
 <!-- LỆCH TÂM -->
@@ -855,7 +902,7 @@ try {
 } catch (e) {}
 st.i = DN.indexOf(st.dnv); if (st.i < 0) { st.dnv = 150; st.i = DN.indexOf(150); }
 if (!MAT[st.mat]) st.mat = 'gi';
-function save() { try { st.dnv = DN[st.i]; const d = Object.assign({}, st, { inputs: {} }); ['pg', 'pw', 'ps', 'pc', 'pt', 'pfm', 'meas', 'o-ang', 'o-X', 'o-Y', 'o-pos', 'o-L', 'o-H', 'o-a', 'o-b', 'o-a2', 'o-b2', 'o-dx', 'o-dy', 'o-p3', 'o-dx3', 'o-dy3', 'kt-ang', 'kt-e', 'kt-phi', 'kt-n', 'kt-r', 'kt-tail', 'kt-div', 'd-L', 'd-i', 'd-z', 'd-dir', 'd-s'].forEach(k => d.inputs[k] = $(k).value); localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} }
+function save() { try { st.dnv = DN[st.i]; const d = Object.assign({}, st, { inputs: {} }); ['pg', 'pw', 'ps', 'pc', 'pt', 'pfm', 'meas', 'o-ang', 'o-X', 'o-Y', 'o-pos', 'o-L', 'o-H', 'o-a', 'o-b', 'o-a2', 'o-b2', 'o-dx', 'o-dy', 'o-p3', 'o-dx3', 'o-dy3', 'kt-ang', 'kt-e', 'kt-phi', 'kt-n', 'kt-r', 'kt-tail', 'kt-div', 'd-L', 'd-i', 'd-z', 'd-dir', 'd-s', 'q-W', 'q-H', 'q-L', 'q-dir', 'q-loai', 'q-seg', 'q-ty', 'q-ext', 'v-W', 'v-H', 'v-fh', 'v-n', 'v-top', 'v-seg', 'v-gap', 'v-odd'].forEach(k => d.inputs[k] = $(k).value); localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} }
 if (st.inputs) Object.keys(st.inputs).forEach(k => { if ($(k)) $(k).value = st.inputs[k]; });
 lib.pid = st.pid;
 if (!st.route || !st.route.legs) st.route = defRoute();
@@ -2243,6 +2290,8 @@ const GF = {
     f: [['D1', 'Đường kính lớn D1', 400], ['D2', 'Đường kính nhỏ D2', 250], ['L', 'Dài côn L', 300]] },
   cutt: { lead: 'Cút tròn ghép nhiều đốt (cút tôm). 2 đốt đầu là nửa đốt. Tool ra bảng vạch dấu theo chu vi.',
     f: [['D', 'Đường kính D', 300], ['R', 'Bán kính cong (tim)', null], ['phi', 'Góc cút', 90, 'độ'], ['n', 'Số đốt', 5, 'đốt'], ['tail', 'Cổ thẳng ở 2 đầu', 50], ['div', 'Chia chu vi', 16, 'phần']] },
+  nhanh: { lead: 'Cổ rẽ nhánh từ ống chính ra ống nhánh, theo chi tiết "Kết nối ống rẽ nhánh" trên bản vẽ: cổ dài L = 0,25 × W, tối thiểu 100 mm; tán đinh rive Ø4, bịt kín lỗ tại góc.',
+    f: [['W', 'Rộng nhánh W (cạnh nằm dọc ống chính)', 500], ['H', 'Cao nhánh H', 300]] },
   qd: { lead: 'Đường kính ống tròn tương đương ống vuông (cùng tổn thất ma sát) và vận tốc gió theo lưu lượng.',
     f: [['W', 'Rộng W', 600], ['H', 'Cao H', 400], ['Q', 'Lưu lượng', 5000, 'm³/h'], ['Dq', 'Đường kính tròn để so (tùy chọn)', null]] },
 };
@@ -2354,6 +2403,20 @@ function renderGio() {
       `CÚT TÔM TRÒN Ø${mm(D)}, R ${mm(R)}, góc ${f1(ph)}°, ${n} đốt\nĐốt giữa lưng ${mm(2 * (R + r) * tb)}, bụng ${mm(2 * (R - r) * tb)}; đốt đầu lưng ${mm(tail + (R + r) * tb)}, bụng ${mm(tail + (R - r) * tb)}\n`
       + half.map((h, i) => `Điểm ${i}: nửa đốt ${mm(h)}`).join('\n'));
   }
+  if (k === 'nhanh') {
+    const W = gv('W'), H = gv('H');
+    if (!(W > 0 && H > 0)) return bad('Nhập kích thước ống nhánh.');
+    const L = Math.max(.25 * W, 100), sc = 200 / Math.max(W + L, H * 1.5);
+    let o = `<rect x="20" y="30" width="320" height="40" style="fill:var(--p-mid);stroke:var(--p-lo)"/>` + T(180, 54, 'ống chính', { fs: 10, c: 'var(--muted)' });
+    const x0 = 180 - (W + L) * sc / 2;
+    o += `<path d="M${x0} 70L${x0 + L * sc} ${70 + L * sc}H${x0 + (W + L) * sc}V70Z" style="${SH}"/>` + `<rect x="${x0 + L * sc}" y="${70 + L * sc}" width="${W * sc}" height="60" style="fill:var(--p-mid);stroke:var(--p-lo)"/>`
+      + T(x0 + L * sc / 2 - 4, 70 + L * sc / 2, 'L ' + mm(L), { a: 'end', b: 1 }) + T(x0 + L * sc + W * sc / 2, 70 + L * sc + 34, 'nhánh W ' + mm(W), { fs: 10 });
+    svg.setAttribute('viewBox', `0 0 360 ${70 + L * sc + 80}`); svg.innerHTML = o;
+    return ok(`<div class="big"><div><span>Cổ dài L</span><b>${mm(L)}<small>mm</small></b></div><div><span>Miệng cổ trên ống chính</span><b style="font-size:30px">${mm(W + L)} × ${mm(H)}</b></div></div>`
+      + `<table class="kv"><tr><td>0,25 × W</td><td>${mm(.25 * W)}${.25 * W < 100 ? ' (nhỏ hơn 100, lấy 100)' : ''}</td></tr><tr><td>Diện tích tôn cổ (ước tính, chưa kể mép)</td><td>${m2((2 * W + L) * L + H * L * (1 + Math.SQRT2))} m²</td></tr></table>`
+      + '<div class="note info">Khoét miệng trên ống chính rộng W + L theo chiều gió, cao bằng H. Tán đinh rive Ø4 quanh mép, bịt kín lỗ tại các góc.</div>',
+      `CỔ RẼ NHÁNH ${mm(W)}×${mm(H)}: L = ${mm(L)} mm (0,25W, tối thiểu 100); miệng khoét ${mm(W + L)}×${mm(H)}`);
+  }
   if (k === 'qd') {
     fig.hidden = true;
     const W = gv('W'), H = gv('H'), Q = gv('Q'), Dq = gv('Dq');
@@ -2368,7 +2431,128 @@ function renderGio() {
       `ỐNG ${mm(W)}×${mm(H)} ~ tròn Ø${mm(De)}` + (isFinite(vr) ? `; Q ${mm(Q)} m³/h: ${f1(vr)} m/s` : ''));
   }
 }
-function renderTools() { renderKt(); renderDoc(); renderGio(); }
+// ===== QUY CÁCH ỐNG GIÓ, THEO BẢN VẼ =====
+// bảng "Yêu cầu kỹ thuật chế tạo ống gió" bản vẽ DW-HVAC-201-11, tra theo cạnh lớn của ống
+const QC = [
+  { to: 400, lb: 'Dưới 400', noi: 'A, TDC', gc: 0, goc: '25×25×3', rod: 8, ng: 2500, dg: 3000 },
+  { to: 600, lb: '401 – 600', noi: 'A, TDC', gc: 0, goc: '25×25×3', rod: 8, ng: 2500, dg: 3000 },
+  { to: 760, lb: '601 – 760', noi: 'TDC', gc: 0, goc: '32×32×3', rod: 8, ng: 2500, dg: 3000 },
+  { to: 1000, lb: '761 – 1000', noi: 'TDC', gc: 0, goc: '32×32×3', rod: 10, ng: 2500, dg: 3000 },
+  { to: 1370, lb: '1001 – 1370', noi: 'TDC', gc: 1, goc: '40×40×4', rod: 10, ng: 2500, dg: 2000 },
+  { to: 1600, lb: '1371 – 1600', noi: 'TDC', gc: 2, goc: '40×40×4', rod: 10, ng: 2000, dg: 2000 },
+  { to: 2130, lb: '1601 – 2130', noi: 'TDC', gc: 3, goc: '50×50×5', rod: 10, ng: 2000, dg: 2000 },
+  { to: 2500, lb: '2131 – 2500', noi: 'TDC', gc: 4, goc: '50×50×5', rod: 10, ng: 2500, dg: 1500 },
+  { to: 1e9, lb: 'Từ 2501', noi: 'TDC', gc: 5, cch: '40×75×5', goc: '', rod: 12, ng: 2500, dg: 1500 }];
+const QC_T = 0.75, QC_BL = 8;   // tôn dày 0,75 mm, bulong nở Ø8 cho mọi cỡ
+// bảng tăng cứng ống chống cháy MaKu, bản vẽ DW-HVAC-301-12 (đoạn ống dài tối đa 1120)
+const QCM = [
+  { to: 1370, lb: '1001 – 1370', gc: 1, kc: '1500 – 2000', kmax: 2000, ty: 'M10', goc: 'V40×40×3' },
+  { to: 1600, lb: '1371 – 1600', gc: 2, kc: '1000 – 1500', kmax: 1500, ty: 'M12', goc: 'V40×40×4' },
+  { to: 2130, lb: '1601 – 2130', gc: 3, kc: '1000 – 1500', kmax: 1500, ty: 'M12', goc: 'V50×50×5' },
+  { to: 1e9, lb: 'Từ 2131', gc: 4, kc: '1000 – 1500', kmax: 1500, ty: 'M12', goc: 'V50×50×5' }];
+const qcRow = big => QC.find(r => big <= r.to);
+const qcmRow = big => big > 1000 ? QCM.find(r => big <= r.to) : null;
+const kgTon = (a, t) => a / 1e6 * t * 7.85;   // kg tôn thép: m² × dày (mm) × 7,85
+const f2 = x => x.toFixed(2).replace('.', ',');
+function renderQc() {
+  const W = nv('q-W'), H = nv('q-H'), Lm = nv('q-L'), dir = $('q-dir').value, loai = $('q-loai').value, seg = nv('q-seg'), ty = nv('q-ty'), ext = nv('q-ext') || 0;
+  const el = $('r-gioqc');
+  // bảng tham khảo luôn hiện
+  $('q-tbl').innerHTML = '<div class="tbl"><table class="ref"><tr><th>Cạnh lớn</th><th>Tôn</th><th>Nối</th><th>Gia cường /1,2 m</th><th>Thép góc treo</th><th>Ty</th><th>Treo ngang / đứng</th><th>Bulong nở</th></tr>'
+    + QC.map(r => `<tr><td>${r.lb}</td><td>${f2(QC_T)}</td><td>${r.noi}</td><td>${r.gc ? 'Ø12 × ' + r.gc : '—'}</td><td>${r.cch ? 'C ' + r.cch : r.goc}</td><td>Ø${r.rod}</td><td>${r.ng} / ${r.dg}</td><td>Ø${QC_BL}</td></tr>`).join('') + '</table></div>'
+    + '<p class="lead" style="font-size:13px">Theo bản vẽ DW-HVAC-201-11. Ống chống cháy MaKu (DW-HVAC-301-12):</p><div class="tbl"><table class="ref"><tr><th>Cạnh lớn</th><th>Thanh tăng cứng</th><th>Khoảng cách treo</th><th>Ty</th><th>Thép góc</th></tr>'
+    + QCM.map(r => `<tr><td>${r.lb}</td><td>${r.gc} Rod M12</td><td>${r.kc}</td><td>${r.ty}</td><td>${r.goc}</td></tr>`).join('') + '</table></div>';
+  if (!(W > 0 && H > 0 && Lm > 0 && seg > 0)) { el.innerHTML = '<h2>Quy cách</h2><div class="note bad">Nhập đủ kích thước ống, chiều dài tuyến và chiều dài đoạn ống.</div>'; texts.gioqc = ''; return; }
+  const big = Math.max(W, H), small = Math.min(W, H), r = qcRow(big), mk = loai !== 'thuong', rm = mk ? qcmRow(big) : null;
+  let sp = dir === 'ngang' ? r.ng : r.dg, spNote = 'theo bảng DW-HVAC-201-11';
+  if (rm && rm.kmax < sp) { sp = rm.kmax; spNote = 'lấy số nhỏ hơn theo bảng MaKu DW-HVAC-301-12'; }
+  const L = Lm * 1000, nseg = Math.ceil(L / seg - 1e-9), last = L - (nseg - 1) * seg, nGia = Math.ceil(L / sp - 1e-9) + 1;
+  const gc = rm ? rm.gc : r.gc, per = 2 * (W + H), A = per * L;
+  const gocTxt = rm ? rm.goc : r.cch ? 'C ' + r.cch : 'V' + r.goc, tyTxt = rm ? rm.ty : 'Ø' + r.rod;
+  let html = '<h2>Quy cách ống ' + mm(W) + '×' + mm(H) + '</h2>'
+    + `<div class="big"><div><span>Tôn ống</span><b style="font-size:34px">${f2(QC_T)}<small>mm</small></b></div><div><span>Nối</span><b style="font-size:34px">${r.noi}</b></div><div><span>Treo cách tối đa</span><b style="font-size:34px">${mm(sp)}<small>mm</small></b></div></div>`
+    + `<table class="kv"><tr><td>Cạnh lớn ${mm(big)} thuộc nhóm</td><td>${r.lb}</td></tr>`
+    + `<tr><td>Thanh gia cường mỗi 1,2 m</td><td>${gc ? gc + ' thanh Ø12' : 'không cần'}</td></tr>`
+    + `<tr><td>Giá treo: thép góc / ty</td><td>${gocTxt} / ${tyTxt}</td></tr><tr><td>Bulong nở</td><td>Ø${QC_BL}</td></tr>`
+    + `<tr><td>Khoảng cách treo</td><td>${mm(sp)} (${spNote})</td></tr></table>`;
+  // vật tư
+  const rows = [], tx = [];
+  const add = (n, v, u) => { rows.push(`<tr><td>${n}</td><td>${v} ${u}</td></tr>`); tx.push(`${n}: ${v} ${u}`); };
+  add(`Số đoạn ống (dài ${mm(seg)})`, nseg + (Math.abs(last - seg) > 1 ? `, đoạn cuối ${mm(last)} mm` : ''), '');
+  add('Mặt bích TDC (2 đầu mỗi đoạn)', 2 * nseg, 'khung');
+  add('Mối nối TDC giữa các đoạn', Math.max(nseg - 1, 0), 'mối');
+  add('Tôn mạ kẽm 0,75 mm', `${m2(A)} m² ≈ ${mm(kgTon(A, QC_T))}`, 'kg');
+  if (mk) {
+    add('Lớp chống cháy MaKu 5 mm', m2(A), 'm²');
+    add('V góc 40×40×0,75 (4 góc)', f1(4 * L / 1000), 'm');
+    if (loai === 'makungoai') add('Tôn mạ kẽm 0,58 mm bọc ngoài', `${m2(A)} m² ≈ ${mm(kgTon(A, .58))}`, 'kg');
+  }
+  if (gc) add(`Thanh tăng cứng Ø12 (dài ≈ cạnh ngắn ${mm(small)})`, gc * nseg, 'thanh');
+  add(dir === 'ngang' ? 'Giá treo' : 'Giá đỡ', nGia, 'bộ');
+  if (dir === 'ngang') {
+    add(`Ty treo ${tyTxt}`, 2 * nGia + (ty > 0 ? ` cây, tổng ${f1(2 * nGia * ty / 1000)} m` : ''), ty > 0 ? '' : 'cây');
+    add(`Thép góc ${gocTxt} (dài ${mm(W + 2 * ext)} mỗi giá)`, f1(nGia * (W + 2 * ext) / 1000), 'm');
+    add(`Bulong nở Ø${QC_BL}`, 2 * nGia, 'con');
+  }
+  html += '<h2 style="font-size:13px">Vật tư cho ' + f1(Lm) + ' m ống</h2><table class="kv">' + rows.join('') + '</table>'
+    + '<div class="note">Diện tích tôn tính theo chu vi ống, chưa cộng mép ghép và hao hụt cắt. Số lượng giá đỡ đứng ở trục đứng: xem tab "Trục đứng ống gió".</div>';
+  if (r.to === 2500) html += '<div class="note">Bảng trên bản vẽ ghi nhóm 2131 – 2500 treo ngang cách 2500 mm, lớn hơn nhóm 1601 – 2130 (2000 mm). Nên hỏi lại thiết kế trước khi thi công.</div>';
+  el.innerHTML = html + copyBtn('gioqc');
+  texts.gioqc = `ỐNG GIÓ ${mm(W)}×${mm(H)}, ${{ thuong: 'tôn thường', maku: 'MaKu trong nhà', makungoai: 'MaKu ngoài trời' }[loai]}, dài ${f1(Lm)} m, đi ${dir}\n`
+    + `Tôn ${f2(QC_T)} mm, nối ${r.noi}, gia cường ${gc ? gc + ' thanh Ø12/1,2 m' : 'không'}, giá ${gocTxt}, ty ${tyTxt}, treo cách ${mm(sp)} mm\n` + tx.join('\n');
+}
+
+// ===== TRỤC ĐỨNG ỐNG GIÓ =====
+function renderTd() {
+  const W = nv('v-W'), H = nv('v-H'), fh = nv('v-fh'), n = Math.round(nv('v-n')), top = nv('v-top') || 0, seg = nv('v-seg'), gap = nv('v-gap') || 0, odd = $('v-odd').value;
+  const el = $('r-giotd'), svg = $('v-svg');
+  if (!(W > 0 && H > 0 && fh > 0 && n >= 1 && seg > 0)) { el.innerHTML = '<h2>Trục đứng</h2><div class="note bad">Nhập đủ kích thước ống, chiều cao tầng, số tầng, chiều dài đoạn.</div>'; svg.innerHTML = ''; texts.giotd = ''; return; }
+  const L = n * fh + top, nf = Math.floor(L / seg + 1e-9), rest = L - nf * seg, hasOdd = rest > 1;
+  // các đoạn từ dưới lên
+  const slabs = []; for (let k = 1; k <= n; k++) if (k < n || top > 0) slabs.push(k * fh);
+  const segs = [];
+  if (odd === 'auto') {   // xếp từ dưới lên; mối nối sắp rơi vào sàn thì cắt ngắn đoạn đó cho mối nằm dưới sàn
+    let z = 0;
+    while (L - z > 1) {
+      let nx = Math.min(z + seg, L);
+      if (nx < L) { const sl = slabs.find(x => Math.abs(nx - x) < gap); if (sl != null && sl - gap - z > 50) nx = sl - gap; }
+      segs.push(nx - z); z = nx;
+    }
+    // đoạn cuối quá ngắn: gộp với đoạn ngay dưới rồi chia đôi, nếu mối mới không rơi vào sàn
+    const m = segs.length;
+    if (m >= 2 && segs[m - 1] < 200) {
+      const t2 = segs[m - 1] + segs[m - 2], h2 = Math.round(t2 / 2), jz = L - (t2 - h2);
+      if (!slabs.some(x => Math.abs(jz - x) < gap)) { segs[m - 2] = h2; segs[m - 1] = t2 - h2; }
+    }
+  } else { if (hasOdd && odd === 'bot') segs.push(rest); for (let i = 0; i < nf; i++) segs.push(seg); if (hasOdd && odd === 'top') segs.push(rest); }
+  const joints = []; let z = 0; segs.forEach((s, i) => { z += s; if (i < segs.length - 1) joints.push(z); });
+  const bad = joints.map(j => { const s = slabs.find(sl => Math.abs(j - sl) < gap); return s != null ? { j, s } : null; }).filter(Boolean);
+  const r = qcRow(Math.max(W, H)), dg = r.dg, extra = Math.max(Math.ceil(fh / dg - 1e-9) - 1, 0), nGia = n * (1 + extra);
+  // hình: trục đứng theo tỉ lệ
+  const Hp = 560, sc = Hp / L, X0 = 150, wd = Math.max(26, Math.min(70, W * sc)), Y = zz => 20 + Hp - zz * sc;
+  let o = `<rect x="${X0 - wd / 2}" y="${Y(L)}" width="${wd}" height="${L * sc}" style="fill:var(--p-mid);stroke:var(--p-lo);stroke-width:1.5"/>`;
+  for (let k = 0; k <= n; k++) { const y = Y(k * fh); o += `<path d="M20 ${y}H${X0 - wd / 2 - 4}M${X0 + wd / 2 + 4} ${y}H230" style="stroke:var(--ink);stroke-width:5"/>` + `<text x="20" y="${y - 5}" font-size="10" font-weight="700">${k === 0 ? 'Sàn đầu trục' : 'Tầng +' + k}</text>`; }
+  joints.forEach(j => { const isBad = bad.some(b => b.j === j), y = Y(j); o += `<path d="M${X0 - wd / 2 - 6} ${y}H${X0 + wd / 2 + 6}" style="stroke:${isBad ? 'var(--bad-ink)' : 'var(--ink)'};stroke-width:${isBad ? 3 : 1.5}"/>` + `<text x="236" y="${y + 3}" font-size="9" style="fill:${isBad ? 'var(--bad-ink)' : 'var(--muted)'}">${mm(j)}</text>`; });
+  for (let k = 1; k <= n; k++) for (let e = 0; e <= extra; e++) { const zz = k * fh - e * fh / (extra + 1); if (zz <= 0) continue; const y = Y(zz) + 6; o += `<path d="M${X0 - wd / 2 - 18} ${y}H${X0 - wd / 2}M${X0 - wd / 2 - 18} ${y}L${X0 - wd / 2 - 4} ${y + 12}" style="stroke:var(--accent);stroke-width:2;fill:none"/>`; }
+  o += `<text x="290" y="${Y(L / 2)}" font-size="11" font-weight="700">${mm(W)}×${mm(H)}</text><text x="290" y="${Y(L / 2) + 14}" font-size="10" style="fill:var(--muted)">dài ${mm(L)}</text>`;
+  svg.setAttribute('viewBox', `0 0 360 ${Hp + 40}`); svg.innerHTML = o;
+  let html = '<h2>Trục đứng ' + mm(W) + '×' + mm(H) + '</h2>'
+    + `<div class="big"><div><span>Tổng chiều dài trục</span><b>${mm(L)}<small>mm</small></b></div><div><span>Số đoạn</span><b style="font-size:34px">${segs.length}</b></div></div>`
+    + `<table class="kv"><tr><td>Đoạn đủ ${mm(seg)}</td><td>${segs.filter(x => Math.abs(x - seg) < 1).length} đoạn</td></tr>`
+    + segs.map((x, i) => Math.abs(x - seg) < 1 ? '' : `<tr><td>Đoạn số ${i + 1} (từ dưới) cắt ngắn</td><td>${mm(x)}</td></tr>`).join('')
+    + `<tr><td>Mối nối TDC</td><td>${joints.length}</td></tr><tr><td>Giá đỡ: mỗi tầng ${1 + extra} bộ${extra ? ` (tầng cao hơn ${mm(dg)} nên thêm ${extra} giá giữa tầng)` : ''}</td><td>${nGia} bộ</td></tr></table>`
+    + '<div class="note info">Giá đỡ theo bản vẽ: thép V50×5, ty kẹp M10, tắc kê sắt M10, đặt sát mặt sàn mỗi tầng.</div>';
+  if (bad.length) html += `<div class="note bad"><b>${bad.length} mối nối rơi vào sàn</b> (cách mặt sàn dưới ${mm(gap)} mm) ở cao độ ${bad.map(b => mm(b.j)).join(', ')}. Chọn "Tự tránh sàn" để app cắt ngắn đoạn ngay dưới sàn.</div>`;
+  else html += `<div class="note info">Không có mối nối nào cách mặt sàn dưới ${mm(gap)} mm.${odd === 'auto' && segs.some(x => Math.abs(x - seg) >= 1) ? ' Các đoạn cắt ngắn tô màu trong bảng.' : ''}</div>`;
+  const tiny = segs.filter(x => x < 200);
+  if (tiny.length) html += `<div class="note">Có đoạn ngắn dưới 200 mm (${tiny.map(mm).join(', ')} mm), khó làm bích TDC. Nên gộp với đoạn bên cạnh rồi chia lại 2 đoạn bằng nhau.</div>`;
+  html += '<div class="tbl"><table class="ref"><tr><th>Đoạn (từ dưới)</th><th>Dài</th><th>Từ cao độ</th><th>Tới cao độ</th></tr>'
+    + segs.map((s, i) => { const a = segs.slice(0, i).reduce((x, y) => x + y, 0), c = Math.abs(s - seg) >= 1; return `<tr${c ? ' style="background:var(--accent-soft)"' : ''}><td>${i + 1}</td><td><b>${mm(s)}</b></td><td>${mm(a)}</td><td>${mm(a + s)}</td></tr>`; }).join('') + '</table></div>';
+  el.innerHTML = html + copyBtn('giotd');
+  texts.giotd = `TRỤC ĐỨNG ỐNG GIÓ ${mm(W)}×${mm(H)}, ${n} tầng × ${mm(fh)}${top ? ' + ' + mm(top) : ''} = ${mm(L)} mm\n${segs.length} đoạn\n`
+    + `Các đoạn từ dưới lên: ${segs.map(mm).join(', ')}\nGiá đỡ V50x5, ty M10, tắc kê M10: ${nGia} bộ\n` + (bad.length ? 'MỐI NỐI RƠI VÀO SÀN: ' + bad.map(b => mm(b.j)).join(', ') + '\n' : '') + 'Mối nối tại: ' + joints.map(mm).join(', ');
+}
+function renderTools() { renderKt(); renderDoc(); renderGio(); renderQc(); renderTd(); }
 
 function renderAll() { fillPipe(); renderList(); renderRouteForm(); renderPumpForm(); renderRun(); renderPump(); renderOffset(); renderRoute(); renderRef(); renderTools(); save(); }
 function renderCalc() { renderRun(); renderPump(); renderOffset(); renderRoute(); renderRef(); renderTools(); save(); }
@@ -2710,6 +2894,8 @@ $('kt-main').addEventListener('change', e => { st.kt.main = +e.target.value; ren
 ['d-L', 'd-i', 'd-z', 'd-dir', 'd-s'].forEach(id => $(id).addEventListener(id === 'd-dir' ? 'change' : 'input', () => { renderDoc(); save(); }));
 $('g-kind').addEventListener('change', e => { st.gio.kind = e.target.value; renderGioForm(); renderGio(); save(); });
 ['input', 'change'].forEach(ev => $('g-in').addEventListener(ev, e => { const k = e.target.dataset.g; if (!k) return; st.gio.v[k] = e.target.value; renderGio(); save(); }));
+['q-W', 'q-H', 'q-L', 'q-dir', 'q-loai', 'q-seg', 'q-ty', 'q-ext'].forEach(id => $(id).addEventListener($(id).tagName === 'SELECT' ? 'change' : 'input', () => { renderQc(); save(); }));
+['v-W', 'v-H', 'v-fh', 'v-n', 'v-top', 'v-seg', 'v-gap', 'v-odd'].forEach(id => $(id).addEventListener($(id).tagName === 'SELECT' ? 'change' : 'input', () => { renderTd(); save(); }));
 renderGioForm();
 $('add').addEventListener('change', e => {
   const v = e.target.value; if (!v) return;
@@ -2761,11 +2947,11 @@ $('rt-addleg').addEventListener('click', () => {
   L.push({ dir: ['L', 'R'].includes(last) ? 'D' : 'L', len: 1000, items: [{ t: 'pipe' }] });
   renderRouteForm(); renderRoute(); save();
 });
-const TABS = ['tuyen', 'bom', 'lech', 'nhieu', 'kt', 'doc', 'gio', 'vattu', 'tra'];
+const TABS = ['tuyen', 'bom', 'lech', 'nhieu', 'kt', 'doc', 'gio', 'gioqc', 'giotd', 'vattu', 'tra'];
 function show(id) {
   document.querySelectorAll('nav.tabs button').forEach(b => b.setAttribute('aria-selected', b.getAttribute('aria-controls') === id));
   TABS.forEach(k => $(k).hidden = k !== id);
-  $('pipecard').hidden = id === 'gio';   // ống gió không dùng thông số ống nước
+  $('pipecard').hidden = ['gio', 'gioqc', 'giotd'].includes(id);   // ống gió không dùng thông số ống nước
 }
 document.querySelectorAll('nav.tabs button').forEach(b => b.addEventListener('click', () => show(b.getAttribute('aria-controls'))));
 window.addEventListener('hashchange', () => { const k = location.hash.slice(1); if (TABS.includes(k)) show(k); });
@@ -2809,6 +2995,6 @@ initStore();
   navigator.serviceWorker.ready.then(() => caches.keys()).then(k => say(k.some(x => x.startsWith('cat-ong-utc-')) ? '✓ Đã lưu trên máy: dùng được khi mất mạng' : 'Đang lưu app về máy…', true));
 })();
 </script>
-<!-- build 202611151000 -->
+<!-- build 202611161000 -->
 </body>
 </html>
